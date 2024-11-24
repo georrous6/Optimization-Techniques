@@ -151,7 +151,7 @@ contourf(X, Y, Z, contourLevels);
 hold on;
 xlabel('X-axis');
 ylabel('Y-axis');
-title(titleString);
+title(sprintf('%s: Convergence Paths', titleString));
 colorbar; % Add a colorbar for reference
 for i=1:size(x_0, 1)
     xpath = xpaths(i, 1:iters(i));
@@ -166,7 +166,7 @@ hold off;
 % Plot cost function progression
 f_min = min(Z(:));
 figure;
-sgtitle(titleString);
+sgtitle(sprintf('%s: Cost Function Progression', titleString));
 for i=1:size(x_0, 1)
     xvalues = 1:iters(i);
     subplot(3, 1, i);
