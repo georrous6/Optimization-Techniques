@@ -33,8 +33,8 @@ costs = NaN(3, 10000);
 
 titleString = '';
 % scenario = 'fixed_step';
-scenario = 'line_minimization';
-% scenario = 'armijo_rule';
+% scenario = 'line_minimization';
+scenario = 'armijo_rule';
 
 switch scenario
 
@@ -48,17 +48,26 @@ switch scenario
                 xpaths(i,iters(i)) = x_k(1);
                 ypaths(i,iters(i)) = x_k(2);
                 costs(i,iters(i)) = objfunc(x_k(1), x_k(2));
+                
+                hes = objfunc_hessian(x_k(1), x_k(2));
+                eigenvalues = eig(hes);
+                if ~all(eigenvalues > 0) || rank(hes) < size(hes, 1)
+                    fprintf('Hessian matrix is singular or not positive definite\n');
+                    disp(hes);
+                    break;
+                end
+
                 grad = objfunc_grad(x_k(1), x_k(2));
-                grad_norm = norm(grad);
-                d_k = -grad / grad_norm;
-                if grad_norm < epsilon
+                d_k = -grad / hes;
+                d_k = d_k / norm(d_k);
+                if norm(grad) < epsilon
                     break;
                 end
                 x_k = x_k + gamma * d_k;
             end
             fprintf("Fixed step: (x0,y0)=(%d,%d), iterations: %d\n", x_0(i, 1), x_0(i, 2), iters(i));
         end
-        titleString = sprintf('Gradient Descend Path (Fixed step: %.2f)', gamma);
+        titleString = sprintf('Newton Path (Fixed step: %.2f)', gamma);
 
     case 'line_minimization'
 
@@ -74,12 +83,22 @@ switch scenario
                 xpaths(i,iters(i)) = x_k(1);
                 ypaths(i,iters(i)) = x_k(2);
                 costs(i,iters(i)) = objfunc(x_k(1), x_k(2));
-                grad = objfunc_grad(x_k(1), x_k(2));
-                grad_norm = norm(grad);
-                d_k = -grad / grad_norm;
-                if grad_norm < epsilon
+                
+                hes = objfunc_hessian(x_k(1), x_k(2));
+                eigenvalues = eig(hes);
+                if ~all(eigenvalues > 0) || rank(hes) < size(hes, 1)
+                    fprintf('Hessian matrix is singular or not positive definite\n');
+                    disp(hes);
                     break;
                 end
+
+                grad = objfunc_grad(x_k(1), x_k(2));
+                d_k = -grad / hes;
+                d_k = d_k / norm(d_k);
+                if norm(grad) < epsilon
+                    break;
+                end
+
                 xd = @(d) (x_k(1) + d * d_k(1));
                 yd = @(d) (x_k(2) + d * d_k(2));
                 zd = @(d) (objfunc(xd(d), yd(d)));
@@ -98,7 +117,7 @@ switch scenario
             fprintf("Line minimization: (x0,y0)=(%d,%d), iterations: %d\n", x_0(i,1), x_0(i,2), iters(i));
         end
 
-        titleString = 'Gradient Descend Path (Line Minimization)';
+        titleString = 'Newton Path (Line Minimization)';
 
     case 'armijo_rule'
 
@@ -114,12 +133,22 @@ switch scenario
                 xpaths(i,iters(i)) = x_k(1);
                 ypaths(i,iters(i)) = x_k(2);
                 costs(i,iters(i)) = objfunc(x_k(1), x_k(2));
-                grad = objfunc_grad(x_k(1), x_k(2));
-                grad_norm = norm(grad);
-                d_k = -grad / grad_norm;
-                if grad_norm < epsilon
+                
+                hes = objfunc_hessian(x_k(1), x_k(2));
+                eigenvalues = eig(hes);
+                if ~all(eigenvalues > 0) || rank(hes) < size(hes, 1)
+                    fprintf('Hessian matrix is singular or not positive definite\n');
+                    disp(hes);
                     break;
                 end
+
+                grad = objfunc_grad(x_k(1), x_k(2));
+                d_k = -grad / hes;
+                d_k = d_k / norm(d_k);
+                if norm(grad) < epsilon
+                    break;
+                end
+
                 gammas = armijo_rule(beta, aplha, s, @objfunc, grad, x_k, d_k);
                 gamma = gammas(end);
                 % Visualize the first 3 iterations
@@ -142,7 +171,7 @@ switch scenario
             fprintf("Armijo Rule: (x0,y0)=(%d,%d), iterations: %d\n", x_0(i,1), x_0(i,2), iters(i));
         end
 
-        titleString = 'Gradient Descend Path (Armijo Rule)';
+        titleString = 'Newton Path (Armijo Rule)';
 end
 
 % Plot contour lines
