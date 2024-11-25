@@ -24,8 +24,8 @@ iters = [0, 0, 0];  % Holds the number of iterations
 colors = {'r', 'g', 'y'};
 contourLevels = 20;
 max_iters = 10000;  % Maximum number of iterations to converge
-% Flag indicating the status of the hessian matrix. 0 -> positive definite, 1 -> singular, 2 -> not positive definite
-hessian_flag = 0;
+% Flag indicating whether hessian matrix is singular
+isSingular = false;
 
 % Save the paths for each starting point
 xpaths = NaN(3, max_iters);
@@ -36,14 +36,14 @@ costs = NaN(3, max_iters);
 
 titleString = '';
 % scenario = 'fixed_step';
-scenario = 'line_minimization';
-% scenario = 'armijo_rule';
+% scenario = 'line_minimization';
+scenario = 'armijo_rule';
 
 switch scenario
 
     case 'fixed_step'
 
-        gamma = 0.0001;  % Use fixed step
+        gamma = 0.001;  % Use fixed step
         for i=1:size(x_0, 1)
             x_k = x_0(i,:);
             while true
@@ -51,34 +51,38 @@ switch scenario
                 xpaths(i,iters(i)) = x_k(1);
                 ypaths(i,iters(i)) = x_k(2);
                 costs(i,iters(i)) = objfunc(x_k(1), x_k(2));
-                
-                hes = objfunc_hessian(x_k(1), x_k(2));
-                eigenvalues = eig(hes);
-                if rank(hes) < size(hes, 1)  % singular hessian matrix, exit loop
-                    hessian_flag = 1;
-                    break;
-                elseif ~all(eigenvalues > 0)  % Non positive definite hessian matrix, continue to see divergence
-                    hessian_flag = 2;
-                end
 
                 grad = objfunc_grad(x_k(1), x_k(2));
-                d_k = -grad / hes;
-                d_k = d_k / norm(d_k);
                 if norm(grad) < epsilon || iters(i) >= max_iters
                     break;
                 end
+                
+                hes = objfunc_hessian(x_k(1), x_k(2));
+                if rank(hes) < size(hes, 1)  % singular hessian matrix, exit loop
+                    isSingular = true;
+                    break;
+                end
+                u_k = 0;
+                eigenvalues = eig(hes);
+                if ~all(eigenvalues > 0)
+                    u_k = 1.001 * max(abs(eigenvalues));
+                end
+                
+                if ~all(eig(hes + u_k * eye(2)) > 0)
+                    fprintf('Non positive definite matrix\n');
+                end
+                d_k = -grad / (hes + u_k * eye(2));
+                d_k = d_k / norm(d_k);
                 x_k = x_k + gamma * d_k;
             end
 
-            if hessian_flag == 1
+            if isSingular
                 fprintf('Hessian matrix singular. ');
-            elseif hessian_flag == 2
-                fprintf('Hessian matrix non positive definite. ');
             end
 
             fprintf("Fixed step: (x0,y0)=(%d,%d), iterations: %d\n", x_0(i, 1), x_0(i, 2), iters(i));
         end
-        titleString = sprintf('Newton Path (Fixed step: %.2f)', gamma);
+        titleString = sprintf('Levenberg-Marquardt Path (Fixed step: %.2f)', gamma);
 
     case 'line_minimization'
 
@@ -94,22 +98,27 @@ switch scenario
                 xpaths(i,iters(i)) = x_k(1);
                 ypaths(i,iters(i)) = x_k(2);
                 costs(i,iters(i)) = objfunc(x_k(1), x_k(2));
-                
-                hes = objfunc_hessian(x_k(1), x_k(2));
-                eigenvalues = eig(hes);
-                if rank(hes) < size(hes, 1)  % singular hessian matrix, exit loop
-                    hessian_flag = 1;
-                    break;
-                elseif ~all(eigenvalues > 0)  % Non positive definite hessian matrix, continue to see divergence
-                    hessian_flag = 2;
-                end
 
                 grad = objfunc_grad(x_k(1), x_k(2));
-                d_k = -grad / hes;
-                d_k = d_k / norm(d_k);
                 if norm(grad) < epsilon || iters(i) >= max_iters
                     break;
                 end
+                
+                hes = objfunc_hessian(x_k(1), x_k(2));
+                if rank(hes) < size(hes, 1)  % singular hessian matrix, exit loop
+                    isSingular = true;
+                    % break;
+                end
+                u_k = 0;
+                eigenvalues = eig(hes);
+                if ~all(eigenvalues > 0)
+                    u_k = 1.001 * max(abs(eigenvalues));
+                end
+                if ~all(eig(hes + u_k * eye(2)) > 0)
+                    fprintf('Non positive definite matrix\n');
+                end
+                d_k = -grad / (hes + u_k * eye(2));
+                d_k = d_k / norm(d_k);
 
                 xd = @(d) (x_k(1) + d * d_k(1));
                 yd = @(d) (x_k(2) + d * d_k(2));
@@ -127,15 +136,13 @@ switch scenario
                 end
             end
 
-            if hessian_flag == 1
+            if isSingular
                 fprintf('Hessian matrix singular. ');
-            elseif hessian_flag == 2
-                fprintf('Hessian matrix non positive definite. ');
             end
             fprintf("Line minimization: (x0,y0)=(%d,%d), iterations: %d\n", x_0(i,1), x_0(i,2), iters(i));
         end
 
-        titleString = 'Newton Path (Line Minimization)';
+        titleString = 'Levenberg-Marquardt Path (Line Minimization)';
 
     case 'armijo_rule'
 
@@ -151,22 +158,27 @@ switch scenario
                 xpaths(i,iters(i)) = x_k(1);
                 ypaths(i,iters(i)) = x_k(2);
                 costs(i,iters(i)) = objfunc(x_k(1), x_k(2));
-                
-                hes = objfunc_hessian(x_k(1), x_k(2));
-                eigenvalues = eig(hes);
-                if rank(hes) < size(hes, 1)  % singular hessian matrix, exit loop
-                    hessian_flag = 1;
-                    break;
-                elseif ~all(eigenvalues > 0)  % Non positive definite hessian matrix, continue to see divergence
-                    hessian_flag = 2;
-                end
 
                 grad = objfunc_grad(x_k(1), x_k(2));
-                d_k = -grad / hes;
-                d_k = d_k / norm(d_k);
                 if norm(grad) < epsilon || iters(i) >= max_iters
                     break;
                 end
+                
+                hes = objfunc_hessian(x_k(1), x_k(2));
+                if rank(hes) < size(hes, 1)  % singular hessian matrix, exit loop
+                    isSingular = true;
+                    % break;
+                end
+                u_k = 0;
+                eigenvalues = eig(hes);
+                if ~all(eigenvalues > 0)
+                    u_k = 1.001 * max(abs(eigenvalues));
+                end
+                if ~all(eig(hes + u_k * eye(2)) > 0)
+                    fprintf('Non positive definite matrix\n');
+                end
+                d_k = -grad / (hes + u_k * eye(2));
+                d_k = d_k / norm(d_k);
 
                 gammas = armijo_rule(beta, aplha, s, @objfunc, grad, x_k, d_k);
                 gamma = gammas(end);
@@ -188,15 +200,15 @@ switch scenario
                 x_k = x_k + gamma * d_k;
             end
 
-            if hessian_flag == 1
+            if isSingular == 1
                 fprintf('Hessian matrix singular. ');
-            elseif hessian_flag == 2
+            elseif isSingular == 2
                 fprintf('Hessian matrix non positive definite. ');
             end
             fprintf("Armijo Rule: (x0,y0)=(%d,%d), iterations: %d\n", x_0(i,1), x_0(i,2), iters(i));
         end
 
-        titleString = 'Newton Path (Armijo Rule)';
+        titleString = 'Levenberg-Marquardt Path (Armijo Rule)';
 end
 
 % Plot contour lines

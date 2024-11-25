@@ -23,24 +23,25 @@ x_0 = [0, 0; -1, 1; 1, -1];  % Starting points
 iters = [0, 0, 0];  % Holds the number of iterations
 colors = {'r', 'g', 'y'};
 contourLevels = 20;
+max_iters = 10000;
 
 % Save the paths for each starting point
-xpaths = NaN(3, 10000);
-ypaths = NaN(3, 10000);
+xpaths = NaN(3, max_iters);
+ypaths = NaN(3, max_iters);
 
 % Save the value of the cost function on each iteration
-costs = NaN(3, 10000);
+costs = NaN(3, max_iters);
 
 titleString = '';
-% scenario = 'fixed_step';
-scenario = 'line_minimization';
+scenario = 'fixed_step';
+% scenario = 'line_minimization';
 % scenario = 'armijo_rule';
 
 switch scenario
 
     case 'fixed_step'
 
-        gamma = 0.0001;  % Use fixed step
+        gamma = 0.001;  % Use fixed step
         for i=1:size(x_0, 1)
             x_k = x_0(i,:);
             while true
@@ -51,7 +52,7 @@ switch scenario
                 grad = objfunc_grad(x_k(1), x_k(2));
                 grad_norm = norm(grad);
                 d_k = -grad / grad_norm;
-                if grad_norm < epsilon
+                if grad_norm < epsilon || iters(i) >= max_iters
                     break;
                 end
                 x_k = x_k + gamma * d_k;
@@ -77,7 +78,7 @@ switch scenario
                 grad = objfunc_grad(x_k(1), x_k(2));
                 grad_norm = norm(grad);
                 d_k = -grad / grad_norm;
-                if grad_norm < epsilon
+                if grad_norm < epsilon || iters(i) >= max_iters
                     break;
                 end
                 xd = @(d) (x_k(1) + d * d_k(1));
@@ -117,7 +118,7 @@ switch scenario
                 grad = objfunc_grad(x_k(1), x_k(2));
                 grad_norm = norm(grad);
                 d_k = -grad / grad_norm;
-                if grad_norm < epsilon
+                if grad_norm < epsilon || iters(i) >= max_iters
                     break;
                 end
                 gammas = armijo_rule(beta, aplha, s, @objfunc, grad, x_k, d_k);
