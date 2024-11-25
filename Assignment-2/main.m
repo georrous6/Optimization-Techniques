@@ -23,7 +23,9 @@ x_0 = [0, 0; -1, 1; 1, -1];  % Starting points
 iters = [0, 0, 0];  % Holds the number of iterations
 colors = {'r', 'g', 'y'};
 contourLevels = 20;
-max_iters = 10000;
+max_iters = 10000;  % Maximum number of iterations to converge
+% Flag indicating whether hessian matrix is singular
+isSingular = false;
 
 % Save the paths for each starting point
 xpaths = NaN(3, max_iters);
@@ -32,15 +34,18 @@ ypaths = NaN(3, max_iters);
 % Save the value of the cost function on each iteration
 costs = NaN(3, max_iters);
 
-titleString = '';
-scenario = 'fixed_step';
-% scenario = 'line_minimization';
-% scenario = 'armijo_rule';
+% step_find_method = 'Fixed Step';
+% step_find_method = 'Line Minimization';
+step_find_method = 'Armijo Rule';
 
-switch scenario
+% direction_find_method = 'Gradient Descend';
+% direction_find_method = 'Newton';
+direction_find_method = 'Levenberg-Marquardt';
 
-    case 'fixed_step'
+switch step_find_method
 
+    case 'Fixed Step'
+        
         gamma = 0.001;  % Use fixed step
         for i=1:size(x_0, 1)
             x_k = x_0(i,:);
@@ -49,24 +54,35 @@ switch scenario
                 xpaths(i,iters(i)) = x_k(1);
                 ypaths(i,iters(i)) = x_k(2);
                 costs(i,iters(i)) = objfunc(x_k(1), x_k(2));
+
                 grad = objfunc_grad(x_k(1), x_k(2));
-                grad_norm = norm(grad);
-                d_k = -grad / grad_norm;
-                if grad_norm < epsilon || iters(i) >= max_iters
+                if norm(grad) < epsilon || iters(i) >= max_iters
                     break;
+                end
+                
+                d_k = NaN(1, 2);
+                switch direction_find_method
+                    case 'Gradient Descend'
+                        d_k = -grad / norm(grad);
+                    case 'Newton'
+                        hes = objfunc_hessian(x_k(1), x_k(2));
+                        d_k = newton(grad, hes);
+                    case 'Levenberg-Marquardt'
+                        hes = objfunc_hessian(x_k(1), x_k(2));
+                        d_k = levenberg_marquardt(grad, hes);
                 end
                 x_k = x_k + gamma * d_k;
             end
-            fprintf("Fixed step: (x0,y0)=(%d,%d), iterations: %d\n", x_0(i, 1), x_0(i, 2), iters(i));
-        end
-        titleString = sprintf('Gradient Descend Path (Fixed step: %.2f)', gamma);
 
-    case 'line_minimization'
+            fprintf("%s (%s): (x0,y0)=(%d,%d), iterations=%d\n", direction_find_method, step_find_method, x_0(i, 1), x_0(i, 2), iters(i));
+        end
+
+    case 'Line Minimization'
 
         % Define fibonacci parameters
         l = 0.001;
         e = 0.001;
-        distance = 3;
+        distance = 3;  % Distance to search for the minimum
         
         for i=1:size(x_0, 1)
             x_k = x_0(i,:);
@@ -75,12 +91,24 @@ switch scenario
                 xpaths(i,iters(i)) = x_k(1);
                 ypaths(i,iters(i)) = x_k(2);
                 costs(i,iters(i)) = objfunc(x_k(1), x_k(2));
+
                 grad = objfunc_grad(x_k(1), x_k(2));
-                grad_norm = norm(grad);
-                d_k = -grad / grad_norm;
-                if grad_norm < epsilon || iters(i) >= max_iters
+                if norm(grad) < epsilon || iters(i) >= max_iters
                     break;
                 end
+                
+                d_k = NaN(1, 2);
+                switch direction_find_method
+                    case 'Gradient Descend'
+                        d_k = -grad / norm(grad);
+                    case 'Newton'
+                        hes = objfunc_hessian(x_k(1), x_k(2));
+                        d_k = newton(grad, hes);
+                    case 'Levenberg-Marquardt'
+                        hes = objfunc_hessian(x_k(1), x_k(2));
+                        d_k = levenberg_marquardt(grad, hes);
+                end
+
                 xd = @(d) (x_k(1) + d * d_k(1));
                 yd = @(d) (x_k(2) + d * d_k(2));
                 zd = @(d) (objfunc(xd(d), yd(d)));
@@ -96,17 +124,16 @@ switch scenario
                     title(sprintf('(x0,y0)=(%d,%d) Iter %d Step: %.2f', x_0(i,1), x_0(i,2), iters(i), gamma));
                 end
             end
-            fprintf("Line minimization: (x0,y0)=(%d,%d), iterations: %d\n", x_0(i,1), x_0(i,2), iters(i));
+
+            fprintf("%s (%s): (x0,y0)=(%d,%d), iterations=%d\n", direction_find_method, step_find_method, x_0(i, 1), x_0(i, 2), iters(i));
         end
 
-        titleString = 'Gradient Descend Path (Line Minimization)';
-
-    case 'armijo_rule'
+    case 'Armijo Rule'
 
         % Define Armijo rule parameters
         beta = 0.5;  % Denotes how fast the step size changes
         aplha = 0.01;  % Denotes how much improvement do we demand at each step
-        s = 3;
+        s = 3;  % The initial step
         
         for i=1:size(x_0, 1)
             x_k = x_0(i,:);
@@ -115,12 +142,24 @@ switch scenario
                 xpaths(i,iters(i)) = x_k(1);
                 ypaths(i,iters(i)) = x_k(2);
                 costs(i,iters(i)) = objfunc(x_k(1), x_k(2));
+
                 grad = objfunc_grad(x_k(1), x_k(2));
-                grad_norm = norm(grad);
-                d_k = -grad / grad_norm;
-                if grad_norm < epsilon || iters(i) >= max_iters
+                if norm(grad) < epsilon || iters(i) >= max_iters
                     break;
                 end
+                
+                d_k = NaN(1, 2);
+                switch direction_find_method
+                    case 'Gradient Descend'
+                        d_k = -grad / norm(grad);
+                    case 'Newton'
+                        hes = objfunc_hessian(x_k(1), x_k(2));
+                        d_k = newton(grad, hes);
+                    case 'Levenberg-Marquardt'
+                        hes = objfunc_hessian(x_k(1), x_k(2));
+                        d_k = levenberg_marquardt(grad, hes);
+                end
+
                 gammas = armijo_rule(beta, aplha, s, @objfunc, grad, x_k, d_k);
                 gamma = gammas(end);
                 % Visualize the first 3 iterations
@@ -140,10 +179,9 @@ switch scenario
                 end
                 x_k = x_k + gamma * d_k;
             end
-            fprintf("Armijo Rule: (x0,y0)=(%d,%d), iterations: %d\n", x_0(i,1), x_0(i,2), iters(i));
-        end
 
-        titleString = 'Gradient Descend Path (Armijo Rule)';
+            fprintf("%s (%s): (x0,y0)=(%d,%d), iterations=%d\n", direction_find_method, step_find_method, x_0(i, 1), x_0(i, 2), iters(i));
+        end
 end
 
 % Plot contour lines
@@ -152,7 +190,7 @@ contourf(X, Y, Z, contourLevels, 'HandleVisibility', 'off');
 hold on;
 xlabel('X-axis');
 ylabel('Y-axis');
-title(sprintf('%s: Convergence Paths', titleString));
+title(sprintf('%s (%s): Convergence Paths', direction_find_method, step_find_method));
 colorbar; % Add a colorbar for reference
 for i=1:size(x_0, 1)
     xpath = xpaths(i, 1:iters(i));
@@ -167,7 +205,7 @@ hold off;
 % Plot cost function progression
 f_min = min(Z(:));
 figure;
-sgtitle(sprintf('%s: Cost Function Progression', titleString));
+sgtitle(sprintf('%s (%s): Cost Function Progression', direction_find_method, step_find_method));
 for i=1:size(x_0, 1)
     xvalues = 1:iters(i);
     subplot(3, 1, i);
