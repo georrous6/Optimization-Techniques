@@ -102,7 +102,7 @@ for direction_find_method = direction_find_methods
                             subplot(2, 3, iters(i) + (i - 2) * 3);
                             dvalues = linspace(0, distance, 100);
                             plot(dvalues, zd(dvalues), 'LineWidth', 1.5);
-                            title(sprintf('(x0,y0)=(%d,%d) Iter %d Step: %.2f', x_0(i,1), x_0(i,2), iters(i), gamma));
+                            title(sprintf('(x0,y0)=(%d,%d) Step: %.2f', x_0(i,1), x_0(i,2), gamma));
                         end
                     end
         
@@ -165,7 +165,7 @@ for direction_find_method = direction_find_methods
                             plot(dvalues, threshold_line, '--g', 'LineWidth', 1.5);
                             plot(dvalues, worst_case_line, '--m', 'LineWidth', 1.5);
                             plot(gammas, zeros(1, length(gammas)), 'xr', 'MarkerSize', 10, 'LineWidth', 1.5);
-                            title(sprintf('(x0,y0)=(%d,%d) Iter %d Step: %.2f', x_0(i,1), x_0(i,2), iters(i), gamma));
+                            title(sprintf('(x0,y0)=(%d,%d) Step: %.2f', x_0(i,1), x_0(i,2), gamma));
                             hold off;
                         end
                         x_k = x_k + gamma * d_k;
