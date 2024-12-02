@@ -7,7 +7,7 @@ gamma_k = 0.2;
 x_0 = [8, -10];  % Starting point
 epsilon = 0.01;  % Gradient threshold
 contourLevels = 20;
-max_iters = 500;  % Maximum number of iterations to converge
+max_iters = 1000;  % Maximum number of iterations to converge
 colors = {'r', 'g'};
 
 % Constraints
@@ -100,7 +100,7 @@ legend('Interpreter', 'latex');
 hold off;
 
 % Save the plot as PDF
-filename = 'task3_contour.pdf';
+filename = 'task4_contour.pdf';
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 exportgraphics(gcf, fullfile(outputDir, filename));
 % close(gcf);
@@ -123,7 +123,7 @@ for i=1:length(s_ks)
 end
 
 % Save the plot as PDF
-filename = 'task3_convergence.pdf';
+filename = 'task4_convergence.pdf';
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 exportgraphics(gcf, fullfile(outputDir, filename));
 % close(gcf);
