@@ -1,13 +1,13 @@
 clc; close all; clearvars;
 
 % Projected Gradient Descend parameters
-s_ks = [5, 0.6];
-gamma_k = 0.5;
+s_ks = [0.1, 2];
+gamma_k = 0.2;
 
-x_0 = [5, -5];  % Starting point
+x_0 = [8, -10];  % Starting point
 epsilon = 0.01;  % Gradient threshold
 contourLevels = 20;
-max_iters = 200;  % Maximum number of iterations to converge
+max_iters = 500;  % Maximum number of iterations to converge
 colors = {'r', 'g'};
 
 % Constraints
@@ -64,8 +64,8 @@ if ~isfolder(outputDir)
 end
         
 % Define x and y values
-xvalues = linspace(x_min, x_max, 100);
-yvalues = linspace(y_min, y_max, 100);
+xvalues = linspace(-10, 10, 100);
+yvalues = linspace(-12, 12, 100);
 
 % Create a grid of x and y values
 [X, Y] = meshgrid(xvalues, yvalues);
@@ -78,6 +78,13 @@ x_star = [0, 0];
 figure;
 contourf(X, Y, Z, contourLevels, 'HandleVisibility', 'off');
 hold on;
+
+% Plot feasible region
+width = x_max - x_min;
+height = y_max - y_min;
+rectangle('Position', [x_min y_min width height], 'EdgeColor', ...
+    'k', 'LineWidth', 2, 'LineStyle', '--');
+
 xlabel('$x_1$', 'Interpreter', 'latex');
 ylabel('$x_2$', 'Interpreter', 'latex');
 title('Projected Gradient Descend: Convergence Paths');
@@ -93,7 +100,7 @@ legend('Interpreter', 'latex');
 hold off;
 
 % Save the plot as PDF
-filename = 'task2_contour.pdf';
+filename = 'task3_contour.pdf';
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 exportgraphics(gcf, fullfile(outputDir, filename));
 % close(gcf);
@@ -116,7 +123,7 @@ for i=1:length(s_ks)
 end
 
 % Save the plot as PDF
-filename = 'task2_convergence.pdf';
+filename = 'task3_convergence.pdf';
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 exportgraphics(gcf, fullfile(outputDir, filename));
 % close(gcf);

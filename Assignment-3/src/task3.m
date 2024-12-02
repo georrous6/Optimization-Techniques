@@ -1,10 +1,10 @@
 clc; close all; clearvars;
 
 % Projected Gradient Descend parameters
-s_ks = [5, 0.6];
-gamma_k = 0.5;
+s_ks = [15, 3];
+gamma_k = 0.1;
 
-x_0 = [5, -5];  % Starting point
+x_0 = [-5, 10];  % Starting point
 epsilon = 0.01;  % Gradient threshold
 contourLevels = 20;
 max_iters = 200;  % Maximum number of iterations to converge
@@ -93,7 +93,7 @@ legend('Interpreter', 'latex');
 hold off;
 
 % Save the plot as PDF
-filename = 'task2_contour.pdf';
+filename = 'task3_contour.pdf';
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 exportgraphics(gcf, fullfile(outputDir, filename));
 % close(gcf);
@@ -116,7 +116,7 @@ for i=1:length(s_ks)
 end
 
 % Save the plot as PDF
-filename = 'task2_convergence.pdf';
+filename = 'task3_convergence.pdf';
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 exportgraphics(gcf, fullfile(outputDir, filename));
 % close(gcf);
