@@ -90,7 +90,7 @@ legend('Interpreter', 'latex');
 hold off;
 
 % Save the plot as PDF
-filename = 'task1_plot1.pdf';
+filename = 'task1_contour.pdf';
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 exportgraphics(gcf, fullfile(outputDir, filename));
 % close(gcf);
@@ -115,7 +115,7 @@ for i=1:length(gammas)
 end
 
 % Save the plot as PDF
-filename = 'task1_plot2.pdf';
+filename = 'task1_convergence.pdf';
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 exportgraphics(gcf, fullfile(outputDir, filename));
 % close(gcf);

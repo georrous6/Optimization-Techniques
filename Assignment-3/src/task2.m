@@ -82,7 +82,7 @@ legend('Interpreter', 'latex');
 hold off;
 
 % Save the plot as PDF
-filename = 'task2_plot1.pdf';
+filename = 'task2_contour.pdf';
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 exportgraphics(gcf, fullfile(outputDir, filename));
 % close(gcf);
@@ -102,7 +102,7 @@ ylabel('Cost');
 legend('Interpreter', 'latex');
 
 % Save the plot as PDF
-filename = 'task2_plot2.pdf';
+filename = 'task2_convergence.pdf';
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 exportgraphics(gcf, fullfile(outputDir, filename));
 % close(gcf);
