@@ -1,5 +1,8 @@
 clc, clearvars, close all;
 
+seed = randi(1000);
+rng(seed);
+
 % Edges capacities
 C = [54.13; 21.56; 34.08; 49.19; 33.03; ...
      21.84; 29.96; 24.87; 47.24; 33.97; ...
@@ -32,10 +35,21 @@ disp(x_real);
 
 %% Find the minimum using a genetic algorithm
 generation_size = 100;
-crossover_ratio = 0.7;
+offspring_ratio = 0.9;
 mutation_ratio = 0.1;
-n_generations = 30;
+n_generations = 10;
 tol = 1e-3;
-sigma = 1 * ones(size(C));
-[x_genetic, fval_genetic] = minimize_genetic(objective, G, C, V, ...
-    generation_size, crossover_ratio, mutation_ratio, n_generations, tol, sigma);
+sigma = 0.01 * ones(size(C));
+max_iters = 1000;
+[x_genetic, fval_genetic] = minimize_genetic(objective, G, C, V, generation_size, offspring_ratio, mutation_ratio, n_generations, tol, sigma, max_iters);
+
+%% Plot generations vs convergence of genetic algorithm
+figure;
+hold on;
+lineWidth = 1.5;
+plot(1:n_generations, fval_genetic, '-ob', 'LineWidth', lineWidth);
+plot(xlim, fval_real * [1, 1], '--r', 'LineWidth', lineWidth);
+hold off;
+xlabel('Generation');
+ylabel('Objective value');
+title(sprintf('Convergence of genetic algorithm over generations (seed=%d)', seed));

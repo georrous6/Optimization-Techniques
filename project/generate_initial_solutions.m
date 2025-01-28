@@ -1,4 +1,4 @@
-function x = generate_initial_solutions(G, C, V, N)
+function x = generate_initial_solutions(G, C, V, N, max_iters)
     % Generates random initial solutions that satisfy the restrictions of
     % the problem.
     %
@@ -13,8 +13,10 @@ function x = generate_initial_solutions(G, C, V, N)
     x = zeros(n_edges, N);
 
     point_cnt = 1;
-    while point_cnt <= N
+    iter = 0;
+    while point_cnt <= N && iter < max_iters
 
+        iter = iter + 1;
         inflow = zeros(1, n_nodes);
         inflow(1) = V;
         C_remained = C;
@@ -40,9 +42,13 @@ function x = generate_initial_solutions(G, C, V, N)
         end
 
         if success
+            iter = 0;
             x(:,point_cnt) = C - C_remained;
             point_cnt = point_cnt + 1;
         end
     end
 
+    if iter == max_iters
+        error('Failed to generate feasible initial solutions (max_iters=%d)', max_iters);
+    end
 end
