@@ -1,7 +1,7 @@
 clc, clearvars, close all;
 
 seed = randi(1000);
-rng(seed);
+rng(546);
 
 % Edges capacities
 C = [54.13; 21.56; 34.08; 49.19; 33.03; ...
@@ -34,39 +34,40 @@ disp('x (builtin):');
 disp(x_real);
 
 %% Find the minimum using a genetic algorithm
-generation_size = 100;
+generation_size = 1000;
 offspring_ratio = 0.9;
 mutation_prob = 0.001;
-k = 20;
-n_generations = 10;
-sigma = 0.1 * ones(size(C));
+k = 100;
+n_generations = 20;
+sigma = 1.0 * ones(size(C));
+max_iters = 1000;
 
-population = C .* rand(size(C, 1), generation_size);
+population = explore(G, C, V, generation_size, max_iters);
 
 parent_strategy = 'tournament';
-[~, objval_tournament, fval_tournament] = minimize_genetic(objective, G, C, V, population, ...
+[x_tournament, objval_tournament, pval_tournament] = minimize_genetic(objective, G, C, V, population, ...
     offspring_ratio, mutation_prob, parent_strategy, k, n_generations, sigma);
 
 parent_strategy = 'roulette';
-[~, objval_roulette, fval_roulette] = minimize_genetic(objective, G, C, V, population, ...
+[x_roulette, objval_roulette, pval_roulette] = minimize_genetic(objective, G, C, V, population, ...
     offspring_ratio, mutation_prob, parent_strategy, k, n_generations, sigma);
 
 parent_strategy = 'random';
-[~, objval_random, fval_random] = minimize_genetic(objective, G, C, V, population, ...
+[x_random, objval_random, pval_random] = minimize_genetic(objective, G, C, V, population, ...
     offspring_ratio, mutation_prob, parent_strategy, k, n_generations, sigma);
 
-%% Plot fitness value over generations for different parent selection strategies
+%% Plot penalty vs generations for different parent selection strategies
 figure;
 hold on;
 lineWidth = 1.5;
-plot(1:n_generations, fval_tournament, '-ob', 'LineWidth', lineWidth);
-plot(1:n_generations, fval_roulette, '-og', 'LineWidth', lineWidth);
-plot(1:n_generations, fval_random, '-oc', 'LineWidth', lineWidth);
+plot(1:n_generations, pval_tournament, '-ob', 'LineWidth', lineWidth);
+plot(1:n_generations, pval_roulette, '-og', 'LineWidth', lineWidth);
+plot(1:n_generations, pval_random, '-oc', 'LineWidth', lineWidth);
 hold off;
 legend('tournament', 'roulette', 'random');
 xlabel('Generation');
-ylabel('Fitness Value');
-title('Fitness Value vs generations for different parent selection strategies');
+ylabel('Penalty');
+title('Penalty vs Generations for different parent selection strategies');
 
 %% Plot objective value over generations for different parent selection strategies
 figure;
@@ -79,5 +80,5 @@ plot(xlim, objval_real * [1, 1], '--r', 'LineWidth', lineWidth);
 hold off;
 legend('tournament', 'roulette', 'random');
 xlabel('Generation');
-ylabel('Objective Value');
-title('Objective Value vs generations for different parent selection strategies');
+ylabel('Objective');
+title('Objective vs Generations for different parent selection strategies');

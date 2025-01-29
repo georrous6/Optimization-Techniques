@@ -1,19 +1,21 @@
-function [x_opt, objval, fval] = minimize_genetic(objective, G, C, V, population, offspring_ratio, mutation_prob, parent_strategy, k, n_generations, sigma)
+function [x_opt, objval, pval] = minimize_genetic(objective, G, C, V, population, offspring_ratio, mutation_prob, parent_strategy, k, n_generations, sigma)
 
     [n_features, generation_size] = size(population);
     n_offspring = ceil(offspring_ratio * generation_size);
     n_old_generation = generation_size - n_offspring;
     offspring = zeros(n_features, n_offspring);
     
-    fval = zeros(1, n_generations);
+    pval = zeros(1, n_generations);
     objval = zeros(1, n_generations);
-    lambda = 10;
+    lambda = 1000000;
     for i = 1:n_generations
 
-        fitness_values = objective(population) + lambda * penalty_function(population, G, C, V);
-        fval(i) = min(fitness_values);
-        objval(i) = min(objective(population));
-        fprintf('Generation %d: fitness=%f, objective=%f, lambda=%f, size=%d\n', i, fval(i), objval(i), lambda, size(population, 2));
+        penalty_values = penalty_function(population, G, C, V);
+        objective_values = objective(population);
+        fitness_values = objective_values + lambda * penalty_values;
+        pval(i) = min(penalty_values);
+        objval(i) = min(objective_values);
+        fprintf('Generation %d: penalty=%f, objective=%f, lambda=%f, size=%d\n', i, pval(i), objval(i), lambda, size(population, 2));
       
         % Generate offspring by crossover and mutation
         for j = 1:n_offspring
@@ -30,9 +32,7 @@ function [x_opt, objval, fval] = minimize_genetic(objective, G, C, V, population
         end
 
         % Adjust lambda
-        if i > 1
-            lambda = lambda + 1 / abs(fval(i) - fval(i - 1));
-        end
+        %lambda = lambda * 2;
 
         [~, sorted_indices] = sort(fitness_values);
         population = [population(:,sorted_indices(1:n_old_generation)), offspring];

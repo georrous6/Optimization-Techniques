@@ -2,7 +2,7 @@ function penalty = penalty_function(x, G, C, V)
     n_nodes = size(G, 1);
     
     % Capacity violation penalty
-    penalty_capacity = sum(max(0, x - C).^2);
+    penalty_capacity = sum(max(0, x - C).^2) + sum(min(0, x).^2);
     
     % Flow conservation penalty
     flow = [V, zeros(1, n_nodes - 2), -V];
