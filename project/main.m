@@ -24,52 +24,60 @@ G(7, 9) = 16;
 G(8, 9) = 17;
 
 % Objective function to minimize
-objective = @(X) (sum(alpha .* X ./ (1 - X ./ C)));
+objective = @(x) (sum(alpha .* x ./ (1 - x ./ C)));
 
 %% Find the minimum using builtin function
 x0 = C .* rand(length(C), 1);  % Initial point
-[x_real, fval_real] = minimize_linear_conditions(objective, G, C, V, x0);
-fprintf('fval (builtin): %f\n', fval_real);
+[x_real, objval_real] = minimize_linear_conditions(objective, G, C, V, x0);
+fprintf('fval (builtin): %f\n', objval_real);
 disp('x (builtin):');
 disp(x_real);
 
 %% Find the minimum using a genetic algorithm
 generation_size = 100;
 offspring_ratio = 0.9;
-mutation_ratio = 0.1;
+mutation_prob = 0.001;
 k = 20;
 n_generations = 10;
-tol = 1e-3;
 sigma = 0.1 * ones(size(C));
-max_iters = 10000;
 
-population = explore(G, C, V, generation_size, max_iters);
+population = C .* rand(size(C, 1), generation_size);
 
 parent_strategy = 'tournament';
-[~, fval_tournament] = minimize_genetic(objective, G, C, V, ...
-    population, offspring_ratio, mutation_ratio, parent_strategy, k, ...
-    n_generations, tol, sigma, max_iters);
+[~, objval_tournament, fval_tournament] = minimize_genetic(objective, G, C, V, population, ...
+    offspring_ratio, mutation_prob, parent_strategy, k, n_generations, sigma);
 
 parent_strategy = 'roulette';
-[~, fval_roulette] = minimize_genetic(objective, G, C, V, ...
-    population, offspring_ratio, mutation_ratio, parent_strategy, k, ...
-    n_generations, tol, sigma, max_iters);
+[~, objval_roulette, fval_roulette] = minimize_genetic(objective, G, C, V, population, ...
+    offspring_ratio, mutation_prob, parent_strategy, k, n_generations, sigma);
 
 parent_strategy = 'random';
-[~, fval_random] = minimize_genetic(objective, G, C, V, ...
-    population, offspring_ratio, mutation_ratio, parent_strategy, k, ...
-    n_generations, tol, sigma, max_iters);
+[~, objval_random, fval_random] = minimize_genetic(objective, G, C, V, population, ...
+    offspring_ratio, mutation_prob, parent_strategy, k, n_generations, sigma);
 
-%% Plot generations vs convergence of genetic algorithm
+%% Plot fitness value over generations for different parent selection strategies
 figure;
 hold on;
 lineWidth = 1.5;
 plot(1:n_generations, fval_tournament, '-ob', 'LineWidth', lineWidth);
 plot(1:n_generations, fval_roulette, '-og', 'LineWidth', lineWidth);
 plot(1:n_generations, fval_random, '-oc', 'LineWidth', lineWidth);
-plot(xlim, fval_real * [1, 1], '--r', 'LineWidth', lineWidth);
 hold off;
 legend('tournament', 'roulette', 'random');
 xlabel('Generation');
-ylabel('Objective value');
-title(sprintf('Convergence of genetic algorithm over generations (seed=%d)', seed));
+ylabel('Fitness Value');
+title('Fitness Value vs generations for different parent selection strategies');
+
+%% Plot objective value over generations for different parent selection strategies
+figure;
+hold on;
+lineWidth = 1.5;
+plot(1:n_generations, objval_tournament, '-ob', 'LineWidth', lineWidth);
+plot(1:n_generations, objval_roulette, '-og', 'LineWidth', lineWidth);
+plot(1:n_generations, objval_random, '-oc', 'LineWidth', lineWidth);
+plot(xlim, objval_real * [1, 1], '--r', 'LineWidth', lineWidth);
+hold off;
+legend('tournament', 'roulette', 'random');
+xlabel('Generation');
+ylabel('Objective Value');
+title('Objective Value vs generations for different parent selection strategies');
