@@ -1,42 +1,28 @@
-function [x_opt, fval] = minimize_genetic(objective, G, C, V, generation_size, offspring_ratio, mutation_ratio, n_generations, tol, sigma, max_iters)
-    if size(C, 2) ~= 1
-        error('<C> must be a column vector');
-    end
-    if size(sigma) ~= size(C)
-        error('<C> and <sigma> must have the same dimensions and must be column vectors');
-    end
-    if offspring_ratio > 1 || offspring_ratio <= 0
-        error('Invalid input for <offspring_ratio> (0 < offspring_ratio <= 1)');
-    end
-    if mutation_ratio > 1 || mutation_ratio <= 0
-        error('Invalid input for <mutation_ratio> (0 < mutation_ratio <= 1)');
-    end
+function [x_opt, fval] = minimize_genetic(objective, G, C, V, population, offspring_ratio, mutation_ratio, parent_strategy, k, n_generations, tol, sigma, max_iters)
 
-    % Get random initial solutions that satisfy the constraints
-    x0 = generate_initial_solutions(G, C, V, generation_size, max_iters);
-
-    x = x0;
-
+    generation_size = size(population, 2);
     n_offspring = ceil(offspring_ratio * generation_size);
     n_mutation = ceil(mutation_ratio * n_offspring);
-    n_parents = generation_size - n_offspring;
+    n_old_generation = generation_size - n_offspring;
     
     fval = zeros(1, n_generations);
     for i = 1:n_generations
 
-        fitness_values = objective(x);
-        [fitness_values, sorted_indices] = sort(fitness_values);
-
-        x = x(:,sorted_indices);
-        fval(i) = fitness_values(1);
-        fprintf('Generation %d: fval=%f, size=%d\n', i, fval(i), size(x, 2));
+        fitness_values = objective(population);
+        fval(i) = min(fitness_values);
+        fprintf('Generation %d: fval=%f, size=%d\n', i, fval(i), size(population, 2));
       
         % Generate offspring
-        offspring = crossover(x, n_offspring, G, C, V, tol, max_iters);
+        offspring = crossover(population, n_offspring, G, C, V, tol, parent_strategy, k, fitness_values, max_iters);
         offspring = mutation(offspring, n_mutation, G, C, V, sigma, tol, max_iters);
 
-        x = [x(:,1:n_parents), offspring];
+        [~, sorted_indices] = sort(fitness_values);
+        if i > 1 && abs(fval(i) - fval(i - 1)) < tol
+            population = [population(:,1), explore(G, C, V, generation_size - 1, max_iters)];
+        else
+            population = [population(:,sorted_indices(1:n_old_generation)), offspring];
+        end
     end
 
-    x_opt = x(:, 1);
+    x_opt = population(:, 1);
 end

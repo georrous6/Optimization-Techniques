@@ -1,4 +1,4 @@
-function x = generate_initial_solutions(G, C, V, N, max_iters)
+function x = explore(G, C, V, N, max_iters)
     % Generates random initial solutions that satisfy the restrictions of
     % the problem.
     %

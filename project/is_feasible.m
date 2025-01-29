@@ -1,10 +1,4 @@
 function result = is_feasible(G, C, V, x, tol)
-    if size(C, 2) ~= 1
-        error('<C> must be a column vector');
-    end
-    if length(C) ~= size(x, 1)
-        error('The number of rows of matrix <x> must be equal to the number of elements of the vector <C>');
-    end
     
     n_points = size(x, 2);
     n_edges = length(C);

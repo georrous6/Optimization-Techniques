@@ -37,19 +37,57 @@ disp(x_real);
 generation_size = 100;
 offspring_ratio = 0.9;
 mutation_ratio = 0.1;
+k = 20;
 n_generations = 10;
 tol = 1e-3;
 sigma = 0.01 * ones(size(C));
 max_iters = 1000;
-[x_genetic, fval_genetic] = minimize_genetic(objective, G, C, V, generation_size, offspring_ratio, mutation_ratio, n_generations, tol, sigma, max_iters);
+
+population = explore(G, C, V, generation_size, max_iters);
+
+parent_strategy = 'tournament';
+[~, fval_tournament] = minimize_genetic(objective, G, C, V, ...
+    population, offspring_ratio, mutation_ratio, parent_strategy, k, ...
+    n_generations, tol, sigma, max_iters);
+
+parent_strategy = 'roulette';
+[~, fval_roulette] = minimize_genetic(objective, G, C, V, ...
+    population, offspring_ratio, mutation_ratio, parent_strategy, k, ...
+    n_generations, tol, sigma, max_iters);
+
+parent_strategy = 'random';
+[~, fval_random] = minimize_genetic(objective, G, C, V, ...
+    population, offspring_ratio, mutation_ratio, parent_strategy, k, ...
+    n_generations, tol, sigma, max_iters);
 
 %% Plot generations vs convergence of genetic algorithm
 figure;
 hold on;
 lineWidth = 1.5;
-plot(1:n_generations, fval_genetic, '-ob', 'LineWidth', lineWidth);
+plot(1:n_generations, fval_tournament, '-ob', 'LineWidth', lineWidth);
+plot(1:n_generations, fval_roulette, '-og', 'LineWidth', lineWidth);
+plot(1:n_generations, fval_random, '-oc', 'LineWidth', lineWidth);
 plot(xlim, fval_real * [1, 1], '--r', 'LineWidth', lineWidth);
 hold off;
+legend('tournament', 'roulette', 'random');
 xlabel('Generation');
 ylabel('Objective value');
 title(sprintf('Convergence of genetic algorithm over generations (seed=%d)', seed));
+
+%% Plot convergence of tournament strategy for different k values
+kvalues = [10, 20, 50, 100];
+parent_strategy = 'tournament';
+figure;
+hold on;
+for i = 1:length(kvalues)
+    [~, fval] = minimize_genetic(objective, G, C, V, ...
+        population, offspring_ratio, mutation_ratio, parent_strategy, kvalues(i), ...
+        n_generations, tol, sigma, max_iters);
+    plot(1:n_generations, fval, '-o', 'LineWidth', lineWidth, 'DisplayName', sprintf('k=%d', kvalues(i)));
+end
+plot(xlim, fval_real * [1, 1], '--r', 'LineWidth', lineWidth);
+hold off;
+legend('show');
+xlabel('Generation');
+ylabel('Objective value');
+title(sprintf('Convergence of tournament stategy for different k values (seed=%d)', seed));
