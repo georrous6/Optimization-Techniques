@@ -40,8 +40,8 @@ mutation_ratio = 0.1;
 k = 20;
 n_generations = 10;
 tol = 1e-3;
-sigma = 0.01 * ones(size(C));
-max_iters = 1000;
+sigma = 0.1 * ones(size(C));
+max_iters = 10000;
 
 population = explore(G, C, V, generation_size, max_iters);
 
@@ -73,21 +73,3 @@ legend('tournament', 'roulette', 'random');
 xlabel('Generation');
 ylabel('Objective value');
 title(sprintf('Convergence of genetic algorithm over generations (seed=%d)', seed));
-
-%% Plot convergence of tournament strategy for different k values
-kvalues = [10, 20, 50, 100];
-parent_strategy = 'tournament';
-figure;
-hold on;
-for i = 1:length(kvalues)
-    [~, fval] = minimize_genetic(objective, G, C, V, ...
-        population, offspring_ratio, mutation_ratio, parent_strategy, kvalues(i), ...
-        n_generations, tol, sigma, max_iters);
-    plot(1:n_generations, fval, '-o', 'LineWidth', lineWidth, 'DisplayName', sprintf('k=%d', kvalues(i)));
-end
-plot(xlim, fval_real * [1, 1], '--r', 'LineWidth', lineWidth);
-hold off;
-legend('show');
-xlabel('Generation');
-ylabel('Objective value');
-title(sprintf('Convergence of tournament stategy for different k values (seed=%d)', seed));
