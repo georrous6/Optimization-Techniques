@@ -1,5 +1,5 @@
-function [x_opt, fval] = minimize_genetic(objective, G, C, V, population, offspring_ratio, mutation_ratio, parent_strategy, k, n_generations, tol, sigma, max_iters)
-    % MINIMIZE_GENETIC Optimizes the traffic flow using a genetic algorithm.
+function [x_opt, fval] = genetic_min(objective, G, C, V, population, offspring_ratio, mutation_ratio, parent_strategy, k, n_generations, tol, sigma, max_iters)
+    % GENETIC_MIN Optimizes the traffic flow using a genetic algorithm.
     %
     % This function uses a genetic algorithm to minimize the objective function related to 
     % traffic flow optimization. It iteratively evolves a population of candidate solutions

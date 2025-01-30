@@ -37,9 +37,9 @@ objective = @(X) (sum(alpha .* X ./ (1 - X ./ C)));
 
 %% Minimize Using Built-in Optimization Function
 x0 = C .* rand(length(C), 1);  % Generate initial guess for optimization
-[x_real, fval_real] = minimize_linear_conditions(objective, G, C, V, x0);
-fprintf('fval (builtin): %f\n', fval_real);
-disp('x (builtin):');
+[x_real, fval_real] = fmincon_linear_conditions(objective, G, C, V, x0);
+fprintf('fval (fmincon): %f\n', fval_real);
+disp('x (fmincon):');
 disp(x_real);
 
 %% Minimize Using Genetic Algorithm
@@ -68,7 +68,7 @@ population = explore(G, C, V, population_size, max_iters);
 
 % Run Genetic Algorithm for Different Parent Selection Strategies
 for i = 1:length(parent_strategies)
-    [x_genetic(:,:,i), fval_genetic(i,:)] = minimize_genetic(objective, G, C, V, ...
+    [x_genetic(:,:,i), fval_genetic(i,:)] = genetic_min(objective, G, C, V, ...
         population, offspring_ratio, mutation_ratio, parent_strategies{i}, k, ...
         n_generations, tol, sigma, max_iters);
 end
@@ -81,7 +81,7 @@ for i = 1:length(parent_strategies)
 end
 plot(xlim, fval_real * [1, 1], '--r', 'LineWidth', lineWidth);
 hold off;
-legend([parent_strategies, {'built-in solution'}]);
+legend([parent_strategies, {'fmincon'}]);
 xlabel('Generation');
 ylabel('Objective Value');
 title('Genetic Algorithm Convergence');
@@ -121,13 +121,13 @@ for i = 1:n_points
 
     % Compute optimal solution using built-in function
     x0 = C .* rand(length(C), 1);  % Initial point
-    [~, f_values(1,i)] = minimize_linear_conditions(objective, G, C, V, x0);
+    [~, f_values(1,i)] = fmincon_linear_conditions(objective, G, C, V, x0);
 
     % Compute solution using genetic algorithm
     population = explore(G, C, V, population_size, max_iters);
 
     for j = 1:length(parent_strategies)
-        [~, fval] = minimize_genetic(objective, G, C, V, ...
+        [~, fval] = genetic_min(objective, G, C, V, ...
             population, offspring_ratio, mutation_ratio, parent_strategies{j}, k, ...
             n_generations, tol, sigma, max_iters);
         f_values(j+1, i) = fval(end);
@@ -142,7 +142,7 @@ for i = 1:length(parent_strategies) + 1
     plot(V_values, f_values(i,:), '-o', 'Color', colors{i}, 'LineWidth', lineWidth);
 end
 hold off;
-legend([{'Built-in Function'}, parent_strategies]);
+legend([{'fmincon'}, parent_strategies]);
 xlabel('V');
 ylabel('Objective Value');
 title('Objective Value vs Total Traffic Flow');

@@ -1,5 +1,6 @@
-function [x, fval] = minimize_linear_conditions(objective, G, C, V, x0)
-    % MINIMIZE_LINEAR_CONDITIONS Solves the optimization problem for vehicle flow in a network.
+function [x, fval] = fmincon_linear_conditions(objective, G, C, V, x0)
+    % FMINCON_LINEAR_CONDITIONS Solves the optimization problem for vehicle 
+    % flow in a network using MATLAB's built-in function fmincon.
     %
     % This function minimizes the total travel time in a road network by 
     % optimizing the vehicle flow using linear equality constraints.
