@@ -1,5 +1,13 @@
 clc, clearvars, close all;
 
+% Define the output directory
+outputDir = '../plot/';
+
+% Ensure the directory exists
+if ~isfolder(outputDir)
+    mkdir(outputDir);  % Create the directory if it doesn't exist
+end
+
 % Define edge capacities
 C = [54.13; 21.56; 34.08; 49.19; 33.03; ...
      21.84; 29.96; 24.87; 47.24; 33.97; ...
@@ -78,6 +86,11 @@ xlabel('Generation');
 ylabel('Objective Value');
 title('Genetic Algorithm Convergence');
 
+% Save the plot as PDF
+filename = 'genetic_convergence.pdf';
+exportgraphics(gcf, fullfile(outputDir, filename));
+fprintf("Created '%s' at '%s'\n", filename, outputDir);
+
 %% Plot Euclidean Distance from Optimal Solution
 figure;
 hold on;
@@ -89,6 +102,11 @@ legend(parent_strategies);
 xlabel('Generation');
 ylabel('Euclidean Distance');
 title('Distance from Optimal Solution');
+
+% Save the plot as PDF
+filename = 'genetic_distance.pdf';
+exportgraphics(gcf, fullfile(outputDir, filename));
+fprintf("Created '%s' at '%s'\n", filename, outputDir);
 
 %% Sensitivity Analysis for Varying Total Traffic Flow (V +- 15%)
 population_size = 100;
@@ -128,3 +146,8 @@ legend([{'Built-in Function'}, parent_strategies]);
 xlabel('V');
 ylabel('Objective Value');
 title('Objective Value vs Total Traffic Flow');
+
+% Save the plot as PDF
+filename = 'solutions_for_different_traffic_flows.pdf';
+exportgraphics(gcf, fullfile(outputDir, filename));
+fprintf("Created '%s' at '%s'\n", filename, outputDir);
