@@ -82,7 +82,7 @@ title('Genetic Algorithm Convergence');
 figure;
 hold on;
 for i = 1:length(parent_strategies)
-    plot(1:n_generations, sum((x_real - x_genetic(:,:,i)).^2), '-o', 'Color', colors{i}, 'LineWidth', lineWidth);
+    plot(1:n_generations, sqrt(sum((x_real - x_genetic(:,:,i)).^2)), '-o', 'Color', colors{i}, 'LineWidth', lineWidth);
 end
 hold off;
 legend(parent_strategies);
