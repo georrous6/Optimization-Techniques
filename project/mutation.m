@@ -1,6 +1,6 @@
 function offspring = mutation(population, N, G, C, V, sigma, tol, max_iters)
 
-    [n_points, ~] = size(population);
+    n_points = size(population, 2);
     mutation_idx = randperm(n_points, N);
     offspring = population;
     i = 1;
