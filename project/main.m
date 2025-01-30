@@ -9,7 +9,7 @@ C = [54.13; 21.56; 34.08; 49.19; 33.03; ...
 % Define alpha values
 alpha = [1.25 * ones(5, 1); 1.5 * ones(5, 1); ones(7, 1)];
 
-% Total flow
+% Total incoming vehicle flow
 V = 100;
 
 % Construct graph adjacency matrix
@@ -28,30 +28,35 @@ G(8, 9) = 17;
 objective = @(X) (sum(alpha .* X ./ (1 - X ./ C)));
 
 %% Minimize Using Built-in Optimization Function
-x0 = C .* rand(length(C), 1);  % Initial point
+x0 = C .* rand(length(C), 1);  % Generate initial guess for optimization
 [x_real, fval_real] = minimize_linear_conditions(objective, G, C, V, x0);
 fprintf('fval (builtin): %f\n', fval_real);
 disp('x (builtin):');
 disp(x_real);
 
 %% Minimize Using Genetic Algorithm
-generation_size = 500;
-offspring_ratio = 0.9;
-mutation_ratio = 0.1;
-k = 100;
-n_generations = 10;
-tol = 1e-3;
-sigma = 0.01 * ones(size(C));
-max_iters = 10000;
+% Genetic algorithm parameters
+population_size = 500;         % Population size
+offspring_ratio = 0.9;         % Fraction of population replaced per generation
+mutation_ratio = 0.1;          % Fraction of offspring undergoing mutation
+k = 100;                       % Tournament size (for tournament selection)
+n_generations = 10;            % Number of generations
+tol = 1e-3;                    % Feasibility tolerance
+sigma = 0.01 * ones(size(C));  % Mutation standard deviation
+max_iters = 10000;             % Max attempts for feasibility
+
+% Parent selection strategies for the genetic algorithm
 parent_strategies = {'tournament', 'roulette', 'random'};
-colors = {'b', 'g', 'c'};
+colors = {'b', 'g', 'c'};  % Colors for plotting
 lineWidth = 1.5;
+
+% Initialize storage variables
 n_features = length(C);
 fval_genetic = zeros(3, n_generations);
 x_genetic = zeros(n_features, n_generations, 3);
 
 % Generate Initial Population
-population = explore(G, C, V, generation_size, max_iters);
+population = explore(G, C, V, population_size, max_iters);
 
 % Run Genetic Algorithm for Different Parent Selection Strategies
 for i = 1:length(parent_strategies)
@@ -68,7 +73,7 @@ for i = 1:length(parent_strategies)
 end
 plot(xlim, fval_real * [1, 1], '--r', 'LineWidth', lineWidth);
 hold off;
-legend(parent_strategies);
+legend([parent_strategies, {'built-in solution'}]);
 xlabel('Generation');
 ylabel('Objective Value');
 title('Genetic Algorithm Convergence');
@@ -80,17 +85,17 @@ for i = 1:length(parent_strategies)
     plot(1:n_generations, sum((x_real - x_genetic(:,:,i)).^2), '-o', 'Color', colors{i}, 'LineWidth', lineWidth);
 end
 hold off;
-legend('tournament', 'roulette', 'random');
+legend(parent_strategies);
 xlabel('Generation');
 ylabel('Euclidean Distance');
 title('Distance from Optimal Solution');
 
-%% Analyze Sensitivity to Varying Demand (V +- 15%)
-generation_size = 100;
+%% Sensitivity Analysis for Varying Total Traffic Flow (V +- 15%)
+population_size = 100;
 n_generations = 10;
 k = 100;
 n_points = 10;
-V_values = linspace(85, 115, n_points);
+V_values = linspace(85, 115, n_points);  % Varying V from -15% to +15%
 f_values = zeros(4, n_points);
 
 for i = 1:n_points
@@ -101,7 +106,7 @@ for i = 1:n_points
     [~, f_values(1,i)] = minimize_linear_conditions(objective, G, C, V, x0);
 
     % Compute solution using genetic algorithm
-    population = explore(G, C, V, generation_size, max_iters);
+    population = explore(G, C, V, population_size, max_iters);
 
     for j = 1:length(parent_strategies)
         [~, fval] = minimize_genetic(objective, G, C, V, ...
@@ -111,7 +116,7 @@ for i = 1:n_points
     end
 end
 
-%% Plot Objective Values for Different Demand Levels
+%% Plot Objective Values for Different Total Traffic Flows
 figure;
 hold on;
 colors = {'r', 'b', 'g', 'c'};
@@ -122,4 +127,4 @@ hold off;
 legend([{'Built-in Function'}, parent_strategies]);
 xlabel('V');
 ylabel('Objective Value');
-title('Objective Value vs. Demand Level');
+title('Objective Value vs Total Traffic Flow');
