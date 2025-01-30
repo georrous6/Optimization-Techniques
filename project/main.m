@@ -1,15 +1,19 @@
 clc, clearvars, close all;
 
-% Edges capacities
+% Define edge capacities
 C = [54.13; 21.56; 34.08; 49.19; 33.03; ...
      21.84; 29.96; 24.87; 47.24; 33.97; ...
      26.89; 32.76; 39.98; 37.12; 53.83; ...
      61.65; 59.73];
 
+% Define alpha values
 alpha = [1.25 * ones(5, 1); 1.5 * ones(5, 1); ones(7, 1)];
+
+% Total flow
 V = 100;
 
-% Graph construction
+% Construct graph adjacency matrix
+% G(i, j) represents the index of the edge connecting node i to node j
 G = zeros(9, 9);
 G(1, [2, 3, 5, 4]) = [1, 2, 3, 4];
 G(2, [7, 6]) = [5, 6];
@@ -20,17 +24,17 @@ G(6, [7, 9]) = [14, 15];
 G(7, 9) = 16;
 G(8, 9) = 17;
 
-% Objective function to minimize
+% Define objective function to minimize
 objective = @(X) (sum(alpha .* X ./ (1 - X ./ C)));
 
-%% Find the minimum using builtin function
+%% Minimize Using Built-in Optimization Function
 x0 = C .* rand(length(C), 1);  % Initial point
 [x_real, fval_real] = minimize_linear_conditions(objective, G, C, V, x0);
 fprintf('fval (builtin): %f\n', fval_real);
 disp('x (builtin):');
 disp(x_real);
 
-%% Find the minimum using a genetic algorithm
+%% Minimize Using Genetic Algorithm
 generation_size = 500;
 offspring_ratio = 0.9;
 mutation_ratio = 0.1;
@@ -46,15 +50,17 @@ n_features = length(C);
 fval_genetic = zeros(3, n_generations);
 x_genetic = zeros(n_features, n_generations, 3);
 
+% Generate Initial Population
 population = explore(G, C, V, generation_size, max_iters);
 
+% Run Genetic Algorithm for Different Parent Selection Strategies
 for i = 1:length(parent_strategies)
     [x_genetic(:,:,i), fval_genetic(i,:)] = minimize_genetic(objective, G, C, V, ...
         population, offspring_ratio, mutation_ratio, parent_strategies{i}, k, ...
         n_generations, tol, sigma, max_iters);
 end
 
-%% Plot generations vs convergence of genetic algorithm
+%% Plot Convergence of Genetic Algorithm
 figure;
 hold on;
 for i = 1:length(parent_strategies)
@@ -64,10 +70,10 @@ plot(xlim, fval_real * [1, 1], '--r', 'LineWidth', lineWidth);
 hold off;
 legend(parent_strategies);
 xlabel('Generation');
-ylabel('Objective value');
-title('Convergence of genetic algorithm over generations');
+ylabel('Objective Value');
+title('Genetic Algorithm Convergence');
 
-%% Plot Euclidean distance of the solutions from the total minimum
+%% Plot Euclidean Distance from Optimal Solution
 figure;
 hold on;
 for i = 1:length(parent_strategies)
@@ -77,9 +83,9 @@ hold off;
 legend('tournament', 'roulette', 'random');
 xlabel('Generation');
 ylabel('Euclidean Distance');
-title('Euclidean distance of solutions from total minimum over generations');
+title('Distance from Optimal Solution');
 
-%% Plot local and total minimum values for V +- 15%
+%% Analyze Sensitivity to Varying Demand (V +- 15%)
 generation_size = 100;
 n_generations = 10;
 k = 100;
@@ -90,11 +96,11 @@ f_values = zeros(4, n_points);
 for i = 1:n_points
     V = V_values(i);
 
-    % Compute total minimum
+    % Compute optimal solution using built-in function
     x0 = C .* rand(length(C), 1);  % Initial point
     [~, f_values(1,i)] = minimize_linear_conditions(objective, G, C, V, x0);
 
-    % Compute minimum via genetic algorithm
+    % Compute solution using genetic algorithm
     population = explore(G, C, V, generation_size, max_iters);
 
     for j = 1:length(parent_strategies)
@@ -105,6 +111,7 @@ for i = 1:n_points
     end
 end
 
+%% Plot Objective Values for Different Demand Levels
 figure;
 hold on;
 colors = {'r', 'b', 'g', 'c'};
@@ -112,7 +119,7 @@ for i = 1:length(parent_strategies) + 1
     plot(V_values, f_values(i,:), '-o', 'Color', colors{i}, 'LineWidth', lineWidth);
 end
 hold off;
-legend([{'builtin function'}, parent_strategies]);
+legend([{'Built-in Function'}, parent_strategies]);
 xlabel('V');
-ylabel('Objective value');
-title('Objective values for different V values');
+ylabel('Objective Value');
+title('Objective Value vs. Demand Level');
