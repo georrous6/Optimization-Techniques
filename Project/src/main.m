@@ -1,5 +1,7 @@
 clc, clearvars, close all;
 
+rng(0);  % Add random seed for reproducibility
+
 % Define the output directory
 outputDir = '../plot/';
 
