@@ -128,12 +128,12 @@ $G_{N\text{\selectlanguage{english}x}N}$ όπου το στοιχείο  $g_{ij}
 \alpha_{ij} = 
 \begin{cases}
 1, & \text{\selectlanguage{english}if } j=g_{ik} > 0 \\
--1, & \text{\selectlanguage{english}if } j=g_{ki} > 0 \\
+-1, & \text{\selectlanguage{english}if } j=g_{li} > 0 \\
 0, & \text{\selectlanguage{english}otherwise} 
 \end{cases}
 \label{eq:A_matrix_definition}
 \end{equation}
-όπου ο δείκτης $k=1,...,N$ διατρέχει την $i$-οστή γραμμή και στήλη του πίνακα $G$ προκειμένου να εντοπίσει ποιες 
+όπου οι δείκτες $l,k=1,...,N$ διατρέχουν την $i$-οστή γραμμή και στήλη του πίνακα $G$ προκειμένου να εντοπίσουν ποιες 
 ακμές εξέρχονται από τον κόμβο $i$ και ποιες εισέρχονται σε αυτόν. Να σημειωθεί ότι εφόσον έχουμε
 κατευθυνόμενο γράφο, αν $g_{ik} > 0$ τότε $g_{ki} = 0$ και το αντίστροφο. Με λίγα λόγια, δεν υπάρχουν ακμές
 μεταξύ δύο κόμβων που να επιτρέπουν την ροή οχημάτων και προς τις δύο κατευθύνσεις. Συνεπώς, ο μαθηματικός 
@@ -213,7 +213,7 @@ ordering)\selectlanguage{greek} του κατευθυνόμενου άκυκλο
     ώστε να μην υπάρχουν άτομα με μηδενική πιθανότητα επιλογής, διατηρώντας την ποικιλομορφία του πληθυσμού.
     Η πιθανότητα εμφάνισης του ατόμου $i$ δίνεται από:
     \begin{equation}
-        p_i = \frac{q_i}{\sum_{j}q_j}
+        p_i = \frac{q_i}{\sum_{j=1}^{M}q_j}
         \label{eq:roulette_selection_probability}
     \end{equation}
 
