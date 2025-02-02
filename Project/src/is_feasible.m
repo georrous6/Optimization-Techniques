@@ -1,4 +1,4 @@
-function result = is_feasible(G, C, V, x, tol)
+function result = is_feasible(G, V, lb, ub, x, tol)
     % IS_FEASIBLE Checks if a given solution satisfies flow and capacity constraints.
     %
     % This function verifies whether a given candidate solution satisfies 
@@ -6,9 +6,12 @@ function result = is_feasible(G, C, V, x, tol)
     %
     % INPUTS:
     %   - G   : Graph adjacency matrix (n_nodes x n_nodes)
-    %   - C   : Vector of edge capacity constraints (n_edges x 1)
-    %   - V   : Total incoming vehicle flow
-    %   - x   : Matrix of candidate solutions (n_edges x n_points)
+    %   - V   : Total incoming vehicle flow (scalar).
+    %           If V > 0, all solutions share the same total inflow.
+    %           If V <= 0, each solution defines its own total inflow (last feature in x).
+    %   - lb  : Lower bounds for optimization variables (n_features x 1).
+    %   - ub  : Upper bounds for optimization variables (n_features x 1).
+    %   - x   : Matrix of candidate solutions (n_features x n_points)
     %   - tol : Tolerance for numerical feasibility check
     %
     % OUTPUT:
@@ -18,17 +21,15 @@ function result = is_feasible(G, C, V, x, tol)
     %   1. It satisfies the flow conservation constraints: A_eq * x = b_eq
     %   2. All flow values are within the capacity bounds: 0 <= x_i <= C_i
 
-    % Get the number of candidate solutions, edges, and nodes
-    n_points = size(x, 2);  % Number of candidate solutions
-    n_edges = length(C);    % Number of edges
-    n_nodes = size(G, 1);   % Number of nodes
+    % Get the number of candidate solutions and nodes
+    [n_features, n_points] = size(x);    % Number of features and candidate solutions
+    n_nodes = size(G, 1);                % Number of nodes
 
     % Initialize the feasibility result array (false by default)
     result = false(1, n_points);
 
     % Construct the linear equality constraints matrices (A_eq * x = b_eq)
-    A_eq = zeros(n_nodes, n_edges);
-    b_eq = [-V; zeros(n_nodes-2, 1); V];  % Net inflow and outflow at each node
+    A_eq = zeros(n_nodes, n_features);
     for i = 1:n_nodes
         % Identify outgoing and incoming edges for node i
         outgoing_edges = G(i, G(i,:) > 0);
@@ -40,9 +41,21 @@ function result = is_feasible(G, C, V, x, tol)
     end
 
     % Check if each point satisfies the constraints
-    for i = 1:n_points
-        if (sum(abs(A_eq * x(:,i) - b_eq) < tol) == n_nodes) && (sum(x(:,i) >= 0 & x(:,i) < C) == n_edges)
-            result(i) = true;
+    if V > 0  
+        % Case 1: All solutions share the same total inflow (V is fixed)
+        b_eq = [-V; zeros(n_nodes-2, 1); V];  % Net inflow and outflow at each node
+        for i = 1:n_points
+            if (sum(abs(A_eq * x(:,i) - b_eq) < tol) == n_nodes) && (sum(x(:,i) >= lb & x(:,i) < ub) == n_features)
+                result(i) = true;
+            end
+        end
+    else
+        % Case 2: Each solution has its own total inflow (last row of x)
+        for i = 1:n_points
+            b_eq = [-x(end,i); zeros(n_nodes-2, 1); x(end,i)];  % Net inflow and outflow at each node
+            if (sum(abs(A_eq * x(:,i) - b_eq) < tol) == n_nodes) && (sum(x(:,i) >= lb & x(:,i) < ub) == n_features)
+                result(i) = true;
+            end
         end
     end
 end

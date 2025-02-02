@@ -37,14 +37,16 @@ G(8, 9) = 17;
 % Define objective function to minimize
 objective = @(X) (sum(alpha .* X ./ (1 - X ./ C)));
 
-%% Minimize Using Built-in Optimization Function
+%% Task 2: Minimize Using Built-in Optimization Function
 x0 = C .* rand(length(C), 1);  % Generate initial guess for optimization
-[x_real, fval_real] = fmincon_linear_conditions(objective, G, C, V, x0);
+lb = zeros(size(C));
+ub = C;
+[x_real, fval_real] = fmincon_linear_conditions(objective, G, V, lb, ub, x0);
 fprintf('fval (fmincon): %f\n', fval_real);
 disp('x (fmincon):');
 disp(x_real);
 
-%% Minimize Using Genetic Algorithm
+%% Task 2: Minimize Using Genetic Algorithm
 % Genetic algorithm parameters
 population_size = 500;         % Population size
 offspring_ratio = 0.9;         % Fraction of population replaced per generation
@@ -61,21 +63,21 @@ colors = {'b', 'g', 'c'};  % Colors for plotting
 lineWidth = 1.5;
 
 % Initialize storage variables
-n_features = length(C);
+n_edges = length(C);
 fval_genetic = zeros(3, n_generations);
-x_genetic = zeros(n_features, n_generations, 3);
+x_genetic = zeros(n_edges, n_generations, 3);
 
 % Generate Initial Population
 population = explore(G, C, V, population_size, max_iters);
 
 % Run Genetic Algorithm for Different Parent Selection Strategies
 for i = 1:length(parent_strategies)
-    [x_genetic(:,:,i), fval_genetic(i,:)] = genetic_min(objective, G, C, V, ...
+    [x_genetic(:,:,i), fval_genetic(i,:)] = genetic_min(objective, G, V, lb, ub,...
         population, offspring_ratio, mutation_ratio, parent_strategies{i}, k, ...
         n_generations, tol, sigma, max_iters);
 end
 
-%% Plot Convergence of Genetic Algorithm
+%% Task 2: Plot Convergence of Genetic Algorithm
 figure;
 hold on;
 for i = 1:length(parent_strategies)
@@ -93,7 +95,7 @@ filename = 'genetic_convergence.pdf';
 exportgraphics(gcf, fullfile(outputDir, filename));
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 
-%% Plot Euclidean Distance from Optimal Solution
+%% Task 2: Plot Euclidean Distance from Optimal Solution
 figure;
 hold on;
 for i = 1:length(parent_strategies)
@@ -110,12 +112,14 @@ filename = 'genetic_distance.pdf';
 exportgraphics(gcf, fullfile(outputDir, filename));
 fprintf("Created '%s' at '%s'\n", filename, outputDir);
 
-%% Sensitivity Analysis for Varying Total Traffic Flow (V +- 15%)
+%% Task 3: Analysis for Varying Total Traffic Flow (V +- 15%, V as a hyperparameter)
 population_size = 100;
 n_generations = 10;
 k = 100;
 n_points = 10;
-V_values = linspace(85, 115, n_points);  % Varying V from -15% to +15%
+Vmin = 85;
+Vmax = 115;
+V_values = linspace(Vmin, Vmax, n_points);  % Varying V from -15% to +15%
 f_values = zeros(4, n_points);
 
 for i = 1:n_points
@@ -123,33 +127,83 @@ for i = 1:n_points
 
     % Compute optimal solution using built-in function
     x0 = C .* rand(length(C), 1);  % Initial point
-    [~, f_values(1,i)] = fmincon_linear_conditions(objective, G, C, V, x0);
+    lb = zeros(size(C));
+    ub = C;
+    [~, f_values(1,i)] = fmincon_linear_conditions(objective, G, V, lb, ub, x0);
 
     % Compute solution using genetic algorithm
     population = explore(G, C, V, population_size, max_iters);
 
     for j = 1:length(parent_strategies)
-        [~, fval] = genetic_min(objective, G, C, V, ...
+        [~, fval] = genetic_min(objective, G, V, lb, ub,...
             population, offspring_ratio, mutation_ratio, parent_strategies{j}, k, ...
             n_generations, tol, sigma, max_iters);
         f_values(j+1, i) = fval(end);
     end
 end
 
-%% Plot Objective Values for Different Total Traffic Flows
+%% Task 3: Plot Objective Values for Different Total Traffic Flows (V as a hyperparameter)
 figure;
 hold on;
 colors = {'r', 'b', 'g', 'c'};
+polynomial_coefficients = polyfit(V_values, f_values(1,:), 2);
+fmincon_fit = polyval(polynomial_coefficients, V_values);
 for i = 1:length(parent_strategies) + 1
     plot(V_values, f_values(i,:), '-o', 'Color', colors{i}, 'LineWidth', lineWidth);
 end
+plot(V_values, fmincon_fit, '--k', 'LineWidth', lineWidth);
 hold off;
-legend([{'fmincon'}, parent_strategies]);
+legend([{'fmincon'}, parent_strategies, {'fmincon fit'}]);
 xlabel('V');
 ylabel('Objective Value');
 title('Objective Value vs Total Traffic Flow');
 
 % Save the plot as PDF
 filename = 'solutions_for_different_traffic_flows.pdf';
+exportgraphics(gcf, fullfile(outputDir, filename));
+fprintf("Created '%s' at '%s'\n", filename, outputDir);
+
+%% Task 3: Analysis for Varying Total Traffic Flow (V +- 15%, V as a gene of the chromosome)
+% Minimize unsing Built-in Function
+V = Vmin + (Vmax - Vmin) * rand;
+x0 = [C .* rand(size(C)); V];  % Generate initial guess for optimization
+lb = [zeros(size(C)); Vmin];
+ub = [C; Vmax];
+objective2 = @(X) (sum(alpha .* X(1:end-1,:) ./ (1 - X(1:end-1,:) ./ C)));
+[x_real, fval_real] = fmincon_linear_conditions(objective2, G, V, lb, ub, x0);
+
+% Minimize Using Genetic Algorithm
+% Generate Initial Population
+n_generations = 10;
+population_size = 1000;
+V = Vmin + (Vmax - Vmin) * rand(1, population_size);
+population = explore(G, C, V, population_size, max_iters);
+x_genetic = zeros(n_edges + 1, n_generations, 3);
+fval_genetic = zeros(3, n_generations);
+sigma = 0.01 * ones(n_edges + 1, 1);  % Mutation standard deviation
+
+% Run Genetic Algorithm for Different Parent Selection Strategies
+for i = 1:length(parent_strategies)
+    [x_genetic(:,:,i), fval_genetic(i,:)] = genetic_min(objective2, G, -1, lb, ub, ...
+        population, offspring_ratio, mutation_ratio, parent_strategies{i}, k, ...
+        n_generations, tol, sigma, max_iters);
+end
+
+%% Task 3: Plot Objective Values for Different Total Traffic Flows (V as a gene of the chromosome)
+colors = {'b', 'g', 'c'};
+figure;
+hold on;
+for i = 1:length(parent_strategies)
+    plot(1:n_generations, fval_genetic(i,:), '-o', 'Color', colors{i}, 'LineWidth', lineWidth);
+end
+plot(xlim, fval_real * [1, 1], '--r', 'LineWidth', lineWidth);
+hold off;
+legend([parent_strategies, {'fmincon'}]);
+xlabel('Generation');
+ylabel('Objective Value');
+title('Genetic Algorithm Convergence (Inflow as a gene)');
+
+% Save the plot as PDF
+filename = 'genetic_convergence_inflow_gene.pdf';
 exportgraphics(gcf, fullfile(outputDir, filename));
 fprintf("Created '%s' at '%s'\n", filename, outputDir);

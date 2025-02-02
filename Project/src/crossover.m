@@ -1,4 +1,4 @@
-function offspring = crossover(population, N, G, C, V, tol, parent_strategy, k, fitness_values, max_iters)
+function offspring = crossover(population, N, G, V, lb, ub, tol, parent_strategy, k, fitness_values, max_iters)
     % CROSSOVER Generates offspring using a linear combination of two parents.
     %
     % This function selects two parents from the population using a specified selection strategy
@@ -9,8 +9,9 @@ function offspring = crossover(population, N, G, C, V, tol, parent_strategy, k, 
     %   - population      : Matrix (n_features x population_size) of candidate solutions.
     %   - N               : Number of offspring to generate.
     %   - G               : Graph adjacency matrix (n_nodes x n_nodes).
-    %   - C               : Vector of edge capacity constraints (n_edges x 1).
     %   - V               : Total incoming vehicle flow.
+    %   - lb              : Lower bounds for optimization variables (n_features x 1).
+    %   - ub              : Upper bounds for optimization variables (n_features x 1).
     %   - tol             : Tolerance for feasibility check.
     %   - parent_strategy : Selection strategy for parents ('tournament', 'roulette', 'random').
     %   - k               : Tournament size (only used in 'tournament' selection).
@@ -43,7 +44,7 @@ function offspring = crossover(population, N, G, C, V, tol, parent_strategy, k, 
         offspring(:,i) = alpha * parent1 + (1 - alpha) * parent2;
 
         % Check feasibility of the newly generated offspring
-        if is_feasible(G, C, V, offspring(:,i), tol)
+        if is_feasible(G, V, lb, ub, offspring(:,i), tol)
             i = i + 1; % Move to the next offspring
             iter = 0;  % Reset iteration counter on successful addition
         end

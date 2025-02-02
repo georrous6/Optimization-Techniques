@@ -1,4 +1,4 @@
-function offspring = mutation(population, N, G, C, V, sigma, tol, max_iters)
+function offspring = mutation(population, N, G, V, lb, ub, sigma, tol, max_iters)
     % MUTATION Applies mutation to selected individuals in the population.
     %
     % This function introduces random variations to a subset of the population by adding 
@@ -6,12 +6,13 @@ function offspring = mutation(population, N, G, C, V, sigma, tol, max_iters)
     % are applied iteratively until N feasible individuals are generated or max_iters is reached.
     %
     % INPUTS:
-    %   - population  : Matrix (n_edges x population_size) of candidate solutions.
+    %   - population  : Matrix (n_features x population_size) of candidate solutions.
     %   - N           : Number of individuals to mutate.
     %   - G           : Graph adjacency matrix (n_nodes x n_nodes).
-    %   - C           : Vector of edge capacity constraints (n_edges x 1).
     %   - V           : Total incoming vehicle flow.
-    %   - sigma       : Standard deviation for mutation noise (n_edges x 1).
+    %   - lb          : Lower bounds for optimization variables (n_features x 1).
+    %   - ub          : Upper bounds for optimization variables (n_features x 1).
+    %   - sigma       : Standard deviation for mutation noise (n_features x 1).
     %   - tol         : Tolerance for feasibility check.
     %   - max_iters   : Maximum iterations to ensure a feasible mutation.
     %
@@ -39,7 +40,7 @@ function offspring = mutation(population, N, G, C, V, sigma, tol, max_iters)
         candidate_offspring = offspring(:,mutation_idx(i)) + randn * sigma;
 
         % Check if the mutated candidate satisfies feasibility constraints
-        if is_feasible(G, C, V, candidate_offspring, tol)
+        if is_feasible(G, V, lb, ub, candidate_offspring, tol)
             % Accept mutation if feasible
             offspring(:,mutation_idx(i)) = candidate_offspring;
             i = i + 1;  % Move to next individual

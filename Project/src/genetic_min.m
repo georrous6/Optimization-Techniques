@@ -1,4 +1,4 @@
-function [x_opt, fval] = genetic_min(objective, G, C, V, population, offspring_ratio, mutation_ratio, parent_strategy, k, n_generations, tol, sigma, max_iters)
+function [x_opt, fval] = genetic_min(objective, G, V, lb, ub, population, offspring_ratio, mutation_ratio, parent_strategy, k, n_generations, tol, sigma, max_iters)
     % GENETIC_MIN Optimizes the traffic flow using a genetic algorithm.
     %
     % This function uses a genetic algorithm to minimize the objective function related to 
@@ -8,8 +8,11 @@ function [x_opt, fval] = genetic_min(objective, G, C, V, population, offspring_r
     % INPUTS:
     %   - objective       : Function handle representing the objective function to minimize.
     %   - G               : Graph adjacency matrix (n_nodes x n_nodes).
-    %   - C               : Vector of edge capacity constraints (n_edges x 1).
-    %   - V               : Total incoming vehicle flow.
+    %   - V               : Total incoming vehicle flow (scalar).
+    %                       If V > 0, all solutions share the same total inflow.
+    %                       If V <= 0, each solution defines its own total inflow.
+    %   - lb              : Lower bounds for optimization variables (n_features x 1).
+    %   - ub              : Upper bounds for optimization variables (n_features x 1).
     %   - population      : Initial population matrix (n_edges x population_size).
     %   - offspring_ratio : Ratio of offspring generated per generation (0-1).
     %   - mutation_ratio  : Ratio of mutated individuals in the offspring (0-1).
@@ -17,7 +20,7 @@ function [x_opt, fval] = genetic_min(objective, G, C, V, population, offspring_r
     %   - k               : Tournament size (only used if 'tournament' selection is chosen).
     %   - n_generations   : Number of generations to run the genetic algorithm.
     %   - tol             : Tolerance for feasibility check.
-    %   - sigma           : Standard deviation for mutation noise (n_edges x 1).
+    %   - sigma           : Standard deviation for mutation noise (n_features x 1).
     %   - max_iters       : Maximum iterations to ensure feasible solutions.
     %
     % OUTPUTS:
@@ -45,8 +48,8 @@ function [x_opt, fval] = genetic_min(objective, G, C, V, population, offspring_r
         fprintf('Generation %d: fval=%f, size=%d\n', i, fval(i), size(population, 2));
       
         % Generate offspring through crossover and mutation
-        offspring = crossover(population, n_offspring, G, C, V, tol, parent_strategy, k, fitness_values, max_iters);
-        offspring = mutation(offspring, n_mutation, G, C, V, sigma, tol, max_iters);
+        offspring = crossover(population, n_offspring, G, V, lb, ub, tol, parent_strategy, k, fitness_values, max_iters);
+        offspring = mutation(offspring, n_mutation, G, V, lb, ub, sigma, tol, max_iters);
 
         % Select the best individuals from the current generation
         [~, sorted_indices] = sort(fitness_values);  % Sort by fitness value (ascending)
