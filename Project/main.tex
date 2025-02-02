@@ -25,7 +25,7 @@
 πολλών μεταβλητών που υπόκεινται σε γραμμικούς ισοτικούς και ανισοτικούς περιορισμούς.
 
 Θεωρούμε το οδικό δίκτυο του Σχ.~\ref{fig:traffic_network} όπου οι κόμβοι παριστάνουν οδικές διασταυρώσεις 
-και τα βέλη κυκλοφοριακές κατευθύνσεις. Οι αριθμοί με μαύρο χρώμα ορίζουν την αρίθμηση των ακμών/δρόμων ενώ 
+και τα βέλη κυκλοφοριακές κατευθύνσεις. Οι αριθμοί με μαύρο χρώμα ορίζουν την αρίθμηση των δρόμων/ακμών ενώ 
 με κόκκινο ορίζουν τον μέγιστο δυνατό ρυθμό διέλευσης οχημάτων από τον ίδιο δρόμο. Ο χρόνος κίνησης στον δρόμο
 $i$ συναρτήσει του ρυθμού διέλευσης των οχημάτων $x_i$ είναι:
 \begin{equation}
@@ -42,6 +42,56 @@ $V[$οχ.$/\text{\selectlanguage{english}min}]$. Για να αποφύγουμ�
 
 \newpage
 
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        xshift=-2cm,  % Shifts the entire figure 2cm to the left
+        > = {Stealth[length=10pt]},
+        vertex/.style = {circle, draw, fill=blue!20, minimum size=20pt},
+        every edge/.style = {draw, ->, thick}
+    ]
+        % Nodes with increased spacing
+        \node[vertex] (v1) at (0,10) {1};
+        \node[vertex] (v2) at (7,7) {2};
+        \node[vertex] (v3) at (2,6) {3};
+        \node[vertex] (v4) at (-7,6) {4};
+        \node[vertex] (v5) at (-2,4) {5};
+        \node[vertex] (v6) at (3,2) {6};
+        \node[vertex] (v7) at (8,0) {7};
+        \node[vertex] (v8) at (-6,1) {8};
+        \node[vertex] (v9) at (0,-3) {9};
+
+        % Added entry point above node 1
+        \draw[->] (0,12.5) -- (v1) node[midway, right] {$V$};
+        
+        % Added exit point below node 9
+        \draw[->] (v9) -- (0,-5.5) node[midway, right] {$V$};
+        
+        % Edges with centered labels on opposite sides
+        \draw[->] (v1) -- (v2) node[midway, above] {1} node[midway, below, red] {54.13};
+        \draw[->] (v1) -- (v3) node[midway, left] {2} node[midway, right, red] {21.56};
+        \draw[->] (v1) -- (v5) node[midway, right] {3} node[midway, left, red] {34.08};
+        \draw[->] (v1) -- (v4) node[midway, below] {4} node[midway, above, red] {49.19};
+        \draw[->] (v2) -- (v7) node[midway, right] {5} node[midway, left, red] {33.03};
+        \draw[->] (v2) -- (v6) node[midway, right] {6} node[midway, left, red] {21.84};
+        \draw[->] (v3) -- (v6) node[midway, right] {7} node[midway, left, red] {29.96};
+        \draw[->] (v3) -- (v5) node[midway, below] {8} node[midway, above, red] {24.87};
+        \draw[->] (v4) -- (v5) node[midway, below] {9} node[midway, above, red] {47.24};
+        \draw[->] (v4) -- (v8) node[midway, right] {10} node[midway, left, red] {33.97};
+        \draw[->] (v5) -- (v8) node[midway, right] {11} node[midway, left, red] {26.89};
+        \draw[->] (v5) -- (v9) node[midway, left] {12} node[midway, right, red] {32.76};
+        \draw[->] (v5) -- (v6) node[midway, below] {13} node[midway, above, red] {39.98};
+        \draw[->] (v6) -- (v7) node[midway, above] {14} node[midway, below, red] {37.12};
+        \draw[->] (v6) -- (v9) node[midway, right] {15} node[midway, left, red] {53.83};
+        \draw[->] (v7) -- (v9) node[midway, below] {16} node[midway, above, red] {61.65};
+        \draw[->] (v8) -- (v9) node[midway, right] {17} node[midway, left, red] {59.73};
+    \end{tikzpicture}
+    \caption{Οδικό δίκτυο}
+    \label{fig:traffic_network}
+\end{figure}
+
+\newpage
+
 \section{Μαθηματική διατύπωση του προβλήματος}
 
 Η συνάρτηση που καλούμαστε να ελαχιστοποιήσουμε είναι η
@@ -51,7 +101,7 @@ f(x_1,...,x_{M}) = \sum_{i=1}^{M}\alpha_i \frac{x_i}{1 - \frac{x_i}{c_i}}
 \end{equation}
 όπου $M$ το πλήθος των ακμών, υπό τους περιορισμούς
 \begin{equation}
-0 \leq x_i < c_i, i = 1,...,M.
+0 \leq x_i < c_i, \quad i = 1,...,M.
 \label{eq:inequality_constraints}
 \end{equation}
 Να σημειωθεί ότι στον ορισμό της (\ref{eq:objective}) δεν λάβαμε υπ' όψιν τους όρους $t_i$ της 
@@ -106,18 +156,19 @@ $G_{N\text{\selectlanguage{english}x}N}$ όπου το στοιχείο  $g_{ij}
 Ο αλγόριθμος αποτελείται από τα εξής στάδια: 
 α) επιλογή αρχικού πληθυσμού που να ικανοποιεί τους περιορισμούς των (\ref{eq:inequality_constraints}) και 
 (\ref{eq:equality_constraints}),
-β) επιλογή των γονέων οι οποίοι θα δημιουργήσουν τους απογόνους \selectlanguage{english}(offspring)
-\selectlanguage{greek},
+β) επιλογή των γονέων οι οποίοι θα δημιουργήσουν τους απογόνους
+\selectlanguage{english}(offspring)\selectlanguage{greek},
 γ) εφαρμογή του τελεστή διασταύρωσης \selectlanguage{english}(crossover)\selectlanguage{greek} στους γονείς 
-για την δημιουργία των απογόνων και έπειτα εφαρμογή του τελεστή μετάλλαξης σε κάποιους από τους απογόνους και
+για την δημιουργία των απογόνων και έπειτα εφαρμογή του τελεστή μετάλλαξης σε ένα υποσύνολο των απογόνων και
 δ) επιλογή των ατόμων που θα διαμορφώσουν την επόμενη γενιά. 
 Τα βήματα αυτά επαναλαμβάνονται σε κάθε γενιά (επανάληψη) $k$ του αλγορίθμου και αναλύονται αναλυτικά παρακάτω.
 
 \subsection{Επιλογή αρχικού πληθυσμού}
 Λόγω των ισχυρών περιορισμών που εισάγει το πρόβλημα βελτιστοποίησης, είναι αναγκαία η δημιουργία μίας μεθόδου
-που θα δημιουργεί με συστηματικό τρόπο ένα αρχικό εφικτό σύνολο λύσεων. Έστω $\phi_i, i=1,...,N-1$ η ροή των 
-εισερχόμενων οχημάτων σε κάθε κόμβο, εκτός του τελευταίου, σε κάθε επανάληψη της μεθόδου. Προφανώς για να είναι 
-ένα σημείο εφικτό θα πρέπει να ισχύει $\phi_i = 0, i=1,...,N-1$ κατά τον τερματισμό του αλγορίθμου.
+που θα δημιουργεί με συστηματικό τρόπο ένα αρχικό εφικτό σύνολο λύσεων. Έστω $\phi_i, i=1,...,N-1$ η καθαρή ροή 
+\selectlanguage{english}(net flow)\selectlanguage{greek} των οχημάτων σε κάθε κόμβο, εκτός του τελευταίου, 
+σε κάθε επανάληψη της μεθόδου. Προφανώς για να είναι ένα σημείο εφικτό θα πρέπει να ισχύει $\phi_i = 0, i=1,...,N-1$ 
+κατά τον τερματισμό του αλγορίθμου.
 
 Η μέθοδος ξεκινάει θέτοντας $\phi_1 = V, \phi_i = 0, i=2,...,N-1$. Έπειτα επισκέπτεται διαδοχικά 
 τους κόμβους του δικτύου (με την σειρά αρίθμισης που φαίνεται στο Σχ.~\ref{fig:traffic_network}) και για κάθε έναν
@@ -145,7 +196,7 @@ ordering)\selectlanguage{greek} του κατευθυνόμενου άκυκλο
     
     Μεγάλες τιμές του $k$, οδηγούν στην επιλογή ανταγωνιστικότερων γονέων
     και σε ταχύτερη σύγκλιση του αλγορίθμου. Ωστόσο υπάρχει ο κίνδυνος πρόωρης σύγκλισης σε κάποιο τοπικό
-    ελάχιστο. Αντιθέτως για μικρές τιμές του $k$ η επιλογή των γονέων γίνεται σχεδόν τυχαία οδηγώντας σε 
+    ελάχιστο. Αντιθέτως, για μικρές τιμές του $k$ η επιλογή των γονέων γίνεται σχεδόν τυχαία οδηγώντας σε 
     αργή σύγκλιση.
 
     \item \textbf{Μέθοδος της Ρουλέτας \selectlanguage{english}(Roulette Method)\selectlanguage{greek}}:
@@ -171,7 +222,7 @@ ordering)\selectlanguage{greek} του κατευθυνόμενου άκυκλο
     Η μέθοδος αυτή επιλέγει τους γονείς εντελώς τυχαία, χωρίς να λαμβάνει υπόψη την καταλληλότητά τους.
 
     Στα πλεονεκτήματά της είναι η διατήριση υψηλής ποικιλομορφίας στον πληθυσμό, αποφεύγοντας την πρόωρη σύγκλιση,
-    ενώ είναι απλούστερη και ταχύτερη σε υπολογιστική πολυπλοκότητα από όλες τις άλλες μεθόδους. Το μειονέκτιμα της
+    ενώ είναι απλούστερη και ταχύτερη σε υπολογιστική πολυπλοκότητα από όλες τις άλλες μεθόδους. Το μειονέκτιμά της
     είναι ο χαμηλός ρυθμός σύγκλισης ενώ ενδέχεται η εξέλιξη να γίνει αναποτελεσματική, αφού δεν ευνοούνται οι πιο 
     κατάλληλες λύσεις.
     
@@ -182,6 +233,24 @@ ordering)\selectlanguage{greek} του κατευθυνόμενου άκυκλο
 \selectlanguage{english}fmincon\selectlanguage{greek} του \selectlanguage{english}MATLAB\selectlanguage{greek}.
 Από το Σχ.~\ref{fig:genetic_distance} βλέπουμε ότι οι λύσεις και των τριών μεθόδων έχουν μία τάση να συγκλίνουν 
 προς την λύση της \selectlanguage{english}fmincon\selectlanguage{greek}.
+
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plot/genetic_convergence.pdf}
+        \caption{Σύγκλιση γενετικού αλγορίθμου για διάφορες μεθόδους επιλογής γονέων}
+        \label{fig:genetic_convergence}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plot/genetic_distance.pdf}
+        \caption{Ευκλείδια απόσταση της λύσης του γενετικού αλγορίθμου από την λύση της συνάρτησης 
+        \selectlanguage{english}fmincon\selectlanguage{greek} του \selectlanguage{english}MATLAB\selectlanguage{greek}}
+        \label{fig:genetic_distance}
+    \end{minipage}
+\end{figure}
 
 \subsection{Δημιουργία απογόνων και μετάλλαξη}
 Έχοντας επιλέξει τους δύο γονείς με μία από τις παραπάνω στρατηγικές, εφαρμόζουμε τον τελεστή διασταύρωσης
@@ -223,7 +292,7 @@ ordering)\selectlanguage{greek} του κατευθυνόμενου άκυκλο
     x_i(k) = x_i(k-1) + \Delta x_i,
     \label{eq:mutation}
 \end{equation}
-Στην υλοποίησή μας θεωρούμε την απλουστευμένη περίπτωση που τα $\Delta x_i$ ακολουθούν όλα την ίδια Γκαουσιανή 
+Στην υλοποίησή μας θεωρούμε την απλουστευμένη περίπτωση όπου τα $\Delta x_i$ ακολουθούν όλα την ίδια Γκαουσιανή 
 κατανομή με μέση τιμή μηδέν και τυπική απόκλιση $\sigma$. 
 
 Όπως και στην περίπτωση της διασταύρωσης, η (\ref{eq:mutation}) επαναλαμβάνεται έως ότου προκύψει εφικτό σημείο
@@ -233,81 +302,87 @@ ordering)\selectlanguage{greek} του κατευθυνόμενου άκυκλο
 \subsection{Δημιουργία νέας γενιάς}
 Η διαδικασία επιλογής των ατόμων που θα απαρτίζουν την νέα γενιά γίνεται κατά ντετερμινιστικό τρόπο. Από την
 (\ref{eq:population_offspring_size}), ο πληθυσμός της επόμενης γενιάς, $\Omega_{k+1}$, θα αποτελείται κατά το
-ποσοστό $\lambda$ από τους απογόνους και κατά $1 - \lambda$ από τα άτομα της προηγούμενης γενίας με την μικρότερη
+ποσοστό $\lambda$ από τους απογόνους και κατά $1 - \lambda$ από τα άτομα της προηγούμενης γενιάς με την μικρότερη
 τιμή της αντικειμενικής συνάρτησης.
 
-Τιμές του $\lambda$ κοντά στην μονάδα προσδίδουν πιο έντονα το χαρακτήρα της ολικής αναζήτησης. Η πλοιοψηφία των
-γονέων πεθαίνουν σε κάθε γενιά και η επιλογή γίνεται κατά κύριο λόγο ανάμεσα στους απογόνους. Με αυτό τον τρόπο 
+Τιμές του $\lambda$ κοντά στην μονάδα προσδίδουν πιο έντονα το χαρακτήρα της ολικής αναζήτησης. Η πλειοψηφία των
+γονέων πεθαίνουν σε κάθε γενιά και η επιλογή γίνεται κατά κύριο λόγο ανάμεσα στους απογόνους. Με αυτόν τον τρόπο 
 ενισχύεται η προσαρμοστικότητα και η ευρύτητα του χώρου αναζήτησης με κίνδυνο ωστόσο να χαθούν ορισμένες καλές,
-μέχρι εκείνη την στιγμή, λύσεις.
+μέχρι εκείνη τη στιγμή, λύσεις.
 
 Αντίθετα, τιμές του $\lambda$ κοντά στο μηδέν δεν απορρίπτουν τις καλές, μέχρι εκείνη την στιγμή, λύσεις 
 επιτυγχάνοντας ταχύτερη σύγκλιση. Το μειονέκτημα σε αυτή την περίπτωση είναι ότι αν βρεθεί μία καλή λύση,
 όλος ο πληθυσμός θα τείνει να συγκεντρωθεί στην γειτονία αυτής.
 
-\newpage
-
 \section{Μεταβολή του ρυθμού εισερχομένων οχημάτων}
+
+Μέχρι τώρα υποθέταμε ότι ο ρυθμός εισερχομένων οχημάτων $V$ ήταν σταθερός, με τιμή $V = 100$.  
+Στην πραγματικότητα, όμως, το $V$ δεν είναι απόλυτα σταθερό και μπορεί να κυμαίνεται σε ένα εύρος τιμών.  
+
+Υποθέτουμε πλέον ότι το $V$ μπορεί να αυξηθεί ή να μειωθεί έως και 15\%.  
+Είναι λογικό ότι όσο μεγαλύτερη είναι η κυκλοφορία, τόσο περισσότερος χρόνος απαιτείται  
+για τη διάσχιση του δικτύου. Αυτή η συσχέτιση απεικονίζεται στο Σχ.~\ref{fig:solutions_for_different_traffic_flows},  
+όπου παρουσιάζουμε και τη λύση που προκύπτει από τη χρήση της συνάρτησης 
+\selectlanguage{english}fmincon\selectlanguage{greek} για λόγους σύγκρισης.
+
+Δεδομένου ότι η \selectlanguage{english}fmincon\selectlanguage{greek} υπολογίζει το ολικό ελάχιστο της 
+αντικειμενικής συνάρτησης, μπορούμε να προσαρμόσουμε ένα πολυώνυμο δευτέρου βαθμού στα αποτελέσματά της.  
+Η προσαρμογή αυτή (μαύρη διακεκομμένη γραμμή στο Σχ.~\ref{fig:solutions_for_different_traffic_flows})  
+παρέχει μια πολύ καλή προσέγγιση για τον ελάχιστο χρόνο διάσχισης συναρτήσει του \(V\).
+
+Το πολυώνυμο που περιγράφει αυτή τη σχέση δίνεται από την εξίσωση:
+\begin{equation}
+    T_{min}(V) = 0.2646V^2 - 33.9056V + 1536.2
+    \label{eq:polynomial}
+\end{equation}
+
+Στο Σχ.~\ref{fig:/genetic_convergence_inflow_gene} φαίνεται η σύγκλιση του γενετικού αλγορίθμου για κάθε
+στρατηγική επιλογής γονέα, \textbf{όπου το $V$ έχει συμπεριληφθεί ως γονίδιο στα χρωμοσώματα}. Σε αντίθεση με τις
+προηγούμενες περιπτώσεις, βλέπουμε ότι η \selectlanguage{english}fmincon\selectlanguage{greek} έχει χειρότερη
+επίδοση από τον γενετικό αλγόριθμο. Αυτό εξηγείται από το γεγονός ότι ο γενετικός αλγόριθμος έχει προτίμηση
+στα χρωμοσώματα με τιμή $V$ κοντά στο 85.
+Επιπλέον, λόγω της μεγάλης επιρροής του γονιδίου που αντιστοιχεί στο $V$ για τον καθορισμό του ελαχίστου, η  
+\selectlanguage{english}fmincon\selectlanguage{greek} είναι ιδιαίτερα ευαίσθητη στην αρχική επιλογή της τιμής του.
+Μια αρχική τιμή του $V$ πολύ υψηλή σε σχέση με το 85 μπορεί να οδηγήσει σε αποτυχία σύγκλισης της 
+\selectlanguage{english}fmincon\selectlanguage{greek}.
 
 \begin{figure}[h]
     \centering
     \begin{minipage}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{plot/genetic_convergence.pdf}
-        \caption{Σύγκλιση γενετικού αλγορίθμου για διάφορες μεθόδους επιλογής γονέων}
-        \label{fig:genetic_convergence}
+        \includegraphics[width=\linewidth]{plot/solutions_for_different_traffic_flows.pdf}
+        \caption{Ελάχιστος χρόνος διάσχυσης του δικτύου συναρτήσει του ρυθμού εισερχομένων οχημάτων}
+        \label{fig:solutions_for_different_traffic_flows}
     \end{minipage}
     \hfill
     \begin{minipage}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{plot/genetic_distance.pdf}
-        \caption{Ευκλείδια απόσταση της λύσης του γενετικού αλγορίθμου από την λύση της συνάρτησης 
-        \selectlanguage{english}fmincon\selectlanguage{greek} του \selectlanguage{english}MATLAB\selectlanguage{greek}}
-        \label{fig:genetic_distance}
+        \includegraphics[width=\linewidth]{plot/genetic_convergence_inflow_gene.pdf}
+        \caption{Σύγκλιση γενετικού αλγορίθμου για διάφορες μεθόδους επιλογής γονέων με τον ρυθμό εισερχομένων 
+        οχημάτων ως γονίδιο των χρομοσωμάτων}
+        \label{fig:/genetic_convergence_inflow_gene}
     \end{minipage}
 \end{figure}
 
-\begin{figure}[htbp]
-    \centering
-    \begin{tikzpicture}[
-        xshift=-2cm,  % Shifts the entire figure 2cm to the left
-        > = {Stealth[length=10pt]},
-        vertex/.style = {circle, draw, fill=blue!20, minimum size=20pt},
-        every edge/.style = {draw, ->, thick}
-    ]
-        % Nodes with increased spacing
-        \node[vertex] (v1) at (0,10) {1};
-        \node[vertex] (v2) at (7,7) {2};
-        \node[vertex] (v3) at (2,6) {3};
-        \node[vertex] (v4) at (-7,6) {4};
-        \node[vertex] (v5) at (-2,4) {5};
-        \node[vertex] (v6) at (3,2) {6};
-        \node[vertex] (v7) at (8,0) {7};
-        \node[vertex] (v8) at (-6,1) {8};
-        \node[vertex] (v9) at (0,-3) {9};
-        
-        % Edges with centered labels on opposite sides
-        \draw[->] (v1) -- (v2) node[midway, above] {1} node[midway, below, red] {54.13};
-        \draw[->] (v1) -- (v3) node[midway, left] {2} node[midway, right, red] {21.56};
-        \draw[->] (v1) -- (v5) node[midway, right] {3} node[midway, left, red] {34.08};
-        \draw[->] (v1) -- (v4) node[midway, below] {4} node[midway, above, red] {49.19};
-        \draw[->] (v2) -- (v7) node[midway, right] {5} node[midway, left, red] {33.03};
-        \draw[->] (v2) -- (v6) node[midway, right] {6} node[midway, left, red] {21.84};
-        \draw[->] (v3) -- (v6) node[midway, right] {7} node[midway, left, red] {29.96};
-        \draw[->] (v3) -- (v5) node[midway, below] {8} node[midway, above, red] {24.87};
-        \draw[->] (v4) -- (v5) node[midway, below] {9} node[midway, above, red] {47.24};
-        \draw[->] (v4) -- (v8) node[midway, right] {10} node[midway, left, red] {33.97};
-        \draw[->] (v5) -- (v8) node[midway, right] {11} node[midway, left, red] {26.89};
-        \draw[->] (v5) -- (v9) node[midway, left] {12} node[midway, right, red] {32.76};
-        \draw[->] (v5) -- (v6) node[midway, below] {13} node[midway, above, red] {39.98};
-        \draw[->] (v6) -- (v7) node[midway, above] {14} node[midway, below, red] {37.12};
-        \draw[->] (v6) -- (v9) node[midway, right] {15} node[midway, left, red] {53.83};
-        \draw[->] (v7) -- (v9) node[midway, below] {16} node[midway, above, red] {61.65};
-        \draw[->] (v8) -- (v9) node[midway, right] {17} node[midway, left, red] {59.73};
-    \end{tikzpicture}
-    \caption{Οδικό δίκτυο}
-    \label{fig:traffic_network}
-\end{figure}
+\section*{Συμπεράσματα}
 
+Στην παρούσα εργασία μελετήσαμε τη βελτιστοποίηση της ροής οχημάτων σε ένα οδικό δίκτυο χρησιμοποιώντας έναν 
+γενετικό αλγόριθμο. Το πρόβλημα διατυπώθηκε μαθηματικά ως ελαχιστοποίηση του συνολικού χρόνου διάσχισης του 
+δικτύου, λαμβάνοντας υπόψη περιορισμούς κυκλοφορίας και διατήρησης της ροής των οχημάτων στους κόμβους.
+
+Ο γενετικός αλγόριθμος αναπτύχθηκε με διαδικασίες επιλογής γονέων, διασταύρωσης και μετάλλαξης, διασφαλίζοντας 
+τη διατήρηση εφικτών λύσεων. Συγκρίνοντας τις μεθόδους επιλογής γονέων (τουρνουά, ρουλέτα, τυχαία επιλογή), 
+διαπιστώθηκε ότι η μέθοδος τουρνουά επιτυγχάνει ταχύτερη σύγκλιση αλλά ενέχει τον κίνδυνο πρόωρης σύγκλισης,
+ενώ η ρουλέτα διατηρεί μεγαλύτερη ποικιλομορφία στον πληθυσμό. 
+
+Η σύγκριση του γενετικού αλγορίθμου
+με τη μέθοδο \selectlanguage{english}fmincon\selectlanguage{greek} έδειξε ότι ο γενετικός αλγόριθμος αποδίδει
+καλύτερα όταν το $V$ ενσωματώνεται ως γονίδιο στο χρωμόσωμα, καθώς προσαρμόζεται δυναμικά σε πιο αποδοτικές 
+τιμές. Αντίθετα, η \selectlanguage{english}fmincon\selectlanguage{greek} αποδεικνύεται ευαίσθητη στις αρχικές 
+συνθήκες, με υψηλές αρχικές τιμές του $V$ να οδηγούν σε αποτυχία σύγκλισης. 
+
+Συνολικά, η χρήση γενετικού 
+αλγορίθμου παρέχει μία αποδοτική προσέγγιση για τη βελτιστοποίηση της ροής κυκλοφορίας, εξασφαλίζοντας ευελιξία
+και ανθεκτικότητα στις μεταβολές των παραμέτρων του συστήματος.
 
 \end{document}
