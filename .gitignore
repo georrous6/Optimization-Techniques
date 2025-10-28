@@ -1,8 +1,6 @@
 *.asv
-*.pdf
 *.zip
 *.rar
-*.png
 *.out
 *.aux
 *.log
