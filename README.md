@@ -36,7 +36,7 @@ The work covers fundamental optimization concepts, including unconstrained, cons
 - Convergence depends on step size selection. Improper selection can cause oscillations around the optimum but remains within the feasible set.
 - Can start from non-feasible initial points successfully.
 
-## Project: Traffic Flow Optimization using Genetic Algorithm (project-report.pdf)
+## Project: Traffic Flow Optimization using Genetic Algorithm
 **Goal:** Minimize total network traversal time per vehicle in a directed road network, subject to flow conservation and capacity constraints.
 
 **Method Studied:** Genetic Algorithm
